@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0E13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Corte">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Corte — Cronômetro de Produção</title>
+<style>
+  :root{
+    /* tema escuro profundo, com um azul de aço como acento */
+    --bg:#0B0E13;
+    --bg2:#0F131A;
+    --card:#151A22;
+    --card2:#1C222C;
+    --card3:#232B37;
+    --txt:#EEF2F8;
+    --txt2:#C4CCD9;
+    --sub:#7C8798;
+    --line:#232C38;
+    --line2:#2E3947;
+    --azul:#5B9BF3;
+    --verde:#3DD68C;
+    --lar:#F5A15C;
+    --verm:#F07070;
+    --roxo:#A98BEA;
+    --ciano:#5FC8D6;
+    --r:14px;
+    --rl:20px;
+    --sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.45;
+    padding:0 15px calc(84px + env(safe-area-inset-bottom));
+    max-width:560px; margin:0 auto;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overscroll-behavior-y:none;
+  }
+  body::before{
+    content:""; position:fixed; inset:0 0 auto 0; height:280px; pointer-events:none; z-index:-1;
+    background:radial-gradient(120% 100% at 50% 0%, rgba(91,155,243,.10), transparent 70%);
+  }
+  h1{font-size:21px;margin:0 0 3px;letter-spacing:-.5px;font-weight:700;}
+  .sub{color:var(--sub);font-size:13px;margin-bottom:0;letter-spacing:-.1px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:16px;margin-bottom:10px;box-shadow:var(--sh);}
+  label{display:block;font-size:12.5px;color:var(--txt2);margin:14px 0 7px;font-weight:600;
+    letter-spacing:-.1px;}
+  label:first-child{margin-top:0;}
+  input,select{
+    width:100%;background:var(--card2);border:1px solid var(--line2);border-radius:12px;
+    padding:14px 14px;color:var(--txt);font-size:16px;font-family:inherit;outline:none;
+    -webkit-appearance:none;appearance:none;
+    transition:border-color .15s, background .15s;
+  }
+  input:focus,select:focus{border-color:var(--azul);background:var(--card3);
+    box-shadow:0 0 0 3px rgba(91,155,243,.14);}
+  input::placeholder{color:#59636F;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237C8798' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row2 > div{min-width:0;}
+
+  /* ---------- botoes ---------- */
+  button{font-family:inherit;border:none;border-radius:13px;font-size:16.5px;font-weight:650;
+    padding:17px;width:100%;cursor:pointer;color:#fff;letter-spacing:-.2px;
+    transition:transform .08s cubic-bezier(.2,.7,.3,1), filter .15s, border-color .15s, background .15s;
+    -webkit-user-select:none;user-select:none;}
+  button:active{transform:scale(.972);}
+  button:disabled{opacity:.36;cursor:default;}
+  .btn-start{background:linear-gradient(180deg,#46E39A,#2FBF7A);color:#062416;
+    box-shadow:0 1px 0 rgba(255,255,255,.22) inset, 0 8px 22px -8px rgba(61,214,140,.55);}
+  .btn-stop{background:linear-gradient(180deg,#F58080,#DC5C5C);
+    box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 8px 22px -8px rgba(240,112,112,.5);}
+  .btn-ghost{background:var(--card);color:var(--txt2);font-size:14.5px;padding:15px;
+    border:1px solid var(--line2);font-weight:600;}
+  .btn-mid{background:var(--card2);border:1px solid var(--line2);color:var(--txt);
+    font-size:15px;padding:15px;font-weight:600;}
+
+  /* ---------- cronometro ---------- */
+  .hero{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);
+    padding:16px 18px;text-align:center;margin-bottom:10px;box-shadow:var(--sh);}
+  .status{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1.4px;font-weight:800;}
+  .clock{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-2px;
+    margin:7px 0 3px;line-height:1;font-feature-settings:"tnum";}
+  .taskname{font-size:13px;color:var(--sub);min-height:17px;letter-spacing:-.1px;}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sub);
+    margin-right:7px;vertical-align:1px;}
+
+  /* ---------- espessura na serra ---------- */
+  .esp{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+  .esp-h{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.1px;
+    font-weight:800;margin-bottom:9px;}
+  .esp-l{display:flex;flex-direction:column;gap:6px;}
+  .esp-i{display:flex;align-items:center;gap:8px;}
+  .esp-b{flex:1;width:auto;text-align:left;background:var(--card3);border:1px solid var(--line2);
+    color:var(--txt);font-size:13.5px;font-weight:650;padding:12px 13px;border-radius:11px;
+    letter-spacing:-.15px;}
+  .esp-i.on .esp-b{background:rgba(91,155,243,.14);border-color:var(--azul);color:var(--azul);}
+  .esp-c{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+  .esp-c .n{min-width:24px;text-align:center;font-size:15px;font-weight:700;
+    font-variant-numeric:tabular-nums;}
+  .pb-s{width:38px;height:40px;font-size:16px;}
+  .esp-r{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.5;}
+  .esp-r b{color:var(--txt);}
+
+  /* ---------- grupos de etapas ---------- */
+  .grupo{margin-bottom:14px;}
+  .grupo-h{font-size:10.5px;color:var(--sub);text-transform:uppercase;letter-spacing:1.3px;
+    font-weight:800;margin:0 0 8px 2px;}
+  .grupo-baixo .grupo-h{color:#5E6876;}
+
+  /* ---------- cartoes de etapa ---------- */
+  .stage{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);
+    padding:14px 15px;margin-bottom:8px;cursor:pointer;position:relative;
+    transition:border-color .18s, background .18s, transform .08s;box-shadow:var(--sh);}
+  .stage:active{transform:scale(.985);}
+  .stage .top{display:flex;align-items:center;gap:10px;}
+  .stage .ic{display:none;}
+  .stage .tt{font-size:15.5px;font-weight:680;letter-spacing:-.25px;flex:1;}
+  .stage .est{font-size:9.5px;padding:3px 9px;border-radius:20px;background:var(--card3);
+    color:var(--sub);font-weight:800;letter-spacing:.7px;white-space:nowrap;}
+  .stage .t{font-size:29px;font-weight:700;font-variant-numeric:tabular-nums;
+    letter-spacing:-1.3px;margin-top:8px;line-height:1;}
+  .stage .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:7px;gap:8px;}
+  .stage .hintx{font-size:11.5px;color:var(--sub);line-height:1.35;letter-spacing:-.05px;}
+  .stage .tot{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;text-align:right;
+    flex-shrink:0;}
+  .stage.on{background:linear-gradient(180deg, rgba(91,155,243,.10), rgba(91,155,243,.03));}
+  .stage.on .est{background:currentColor;color:#0B0E13;}
+  .stage.no{opacity:.5;}
+  .pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;
+    margin-left:6px;animation:p 1.5s ease-in-out infinite;}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.2}}
+
+  .marc{display:flex;gap:7px;align-items:center;margin-top:12px;flex-wrap:wrap;
+    padding-top:12px;border-top:1px solid var(--line);}
+  .marc{display:flex;gap:6px;align-items:center;margin-top:12px;flex-wrap:wrap;
+    padding-top:12px;border-top:1px solid var(--line);}
+  .mb{width:auto;padding:11px 13px;font-size:12.5px;font-weight:650;background:var(--card3);
+      border:1px solid var(--line2);color:var(--txt);border-radius:10px;}
+  .mb:active{border-color:var(--lar);color:var(--lar);}
+  .mb-del{color:var(--sub);padding:11px 15px;}
+  .marc-info{display:flex;justify-content:space-between;gap:10px;margin-top:9px;
+    align-items:baseline;}
+  .mq{font-size:12px;color:var(--txt2);font-variant-numeric:tabular-nums;font-weight:700;}
+  .mq2{font-size:11px;color:var(--sub);text-align:right;line-height:1.4;}
+
+  /* ---------- indicadores ---------- */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;
+    box-shadow:var(--sh);}
+  .stat .k{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.9px;font-weight:800;}
+  .stat .v{font-size:23px;font-weight:700;margin-top:5px;letter-spacing:-1px;
+    font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .u{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:0;}
+
+  /* ---------- listas ---------- */
+  .section-h{font-size:10.5px;color:var(--sub);text-transform:uppercase;letter-spacing:1.3px;
+    font-weight:800;margin:22px 0 9px;}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 15px;margin-bottom:7px;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;box-shadow:var(--sh);}
+  .item.clic{cursor:pointer;transition:background .15s,border-color .15s,transform .08s;}
+  .item.clic:active{background:var(--card2);transform:scale(.99);}
+  .item .l{min-width:0;}
+  .item .n{font-size:14.5px;font-weight:660;letter-spacing:-.2px;}
+  .item .m{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.5;}
+  .item .r{text-align:right;flex-shrink:0;}
+  .item .h{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.6px;}
+  .chev{font-size:18px;color:#4A5462;line-height:1;margin-top:4px;}
+  .empty{color:var(--sub);font-size:13.5px;text-align:center;padding:26px 12px;line-height:1.6;}
+
+  .tag{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:20px;
+    background:var(--card2);color:var(--sub);margin:4px 4px 0 0;font-weight:600;letter-spacing:-.05px;}
+  /* ---------- backup / importacao ---------- */
+  .bk-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:15px;margin-top:10px;box-shadow:var(--sh);}
+  .bk-box .t{font-size:13.5px;font-weight:680;letter-spacing:-.2px;margin-bottom:5px;}
+  .bk-box .d{font-size:12px;color:var(--sub);line-height:1.55;margin-bottom:13px;}
+  .drop{display:block;border:1.5px dashed var(--line2);border-radius:var(--r);
+    padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .16s,background .16s;}
+  .drop:active,.drop.hover{border-color:var(--azul);background:rgba(91,155,243,.06);}
+  .drop .ic{font-size:26px;display:block;margin-bottom:8px;opacity:.85;}
+  .drop .l1{font-size:13.5px;font-weight:650;}
+  .drop .l2{font-size:11.5px;color:var(--sub);margin-top:4px;}
+  .prev{background:var(--card2);border:1px solid var(--line2);border-radius:12px;
+    padding:13px;margin-top:11px;font-size:12.5px;line-height:1.7;}
+  .prev .hl{font-weight:700;color:var(--txt);}
+  .prev .warn{color:var(--lar);}
+  .prev .err{color:var(--verm);}
+  .seg{display:flex;gap:0;background:var(--card2);border:1px solid var(--line2);
+    border-radius:11px;padding:3px;margin-top:11px;}
+  .sg{flex:1;width:auto;background:none;border:none;padding:11px 8px;font-size:12.5px;
+    font-weight:680;color:var(--sub);border-radius:8px;font-family:inherit;letter-spacing:-.1px;}
+  .sg.on{background:var(--card3);color:var(--txt);}
+
+  .foot{font-size:11.5px;color:#5A6472;line-height:1.65;margin-top:26px;text-align:center;}
+
+  .chapas{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .chapas .val{flex:1;background:var(--card2);border:1px solid var(--line2);border-radius:12px;
+    padding:13px;text-align:center;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .chapas .val small{font-size:12px;color:var(--sub);font-weight:500;display:block;margin-top:1px;}
+  .cb{width:56px;height:54px;padding:0;font-size:15px;background:var(--card2);
+    border:1px solid var(--line2);color:var(--txt);border-radius:12px;font-weight:700;}
+
+  .vchips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .vchip{background:var(--card2);border:1px solid var(--line2);border-radius:11px;padding:12px 16px;
+    font-size:13.5px;color:var(--txt);cursor:pointer;font-weight:650;font-family:inherit;width:auto;}
+  .hint{font-size:11.5px;color:#5A6472;margin-top:8px;line-height:1.55;}
+
+  /* ---------- peças por espessura ---------- */
+  .pecas-esp{display:flex;flex-direction:column;gap:7px;margin-top:2px;}
+  .pe{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line2);
+    border-radius:12px;padding:9px 11px;}
+  .pe .lb{flex:1;font-size:13.5px;font-weight:660;letter-spacing:-.15px;}
+  .pe .lb small{display:block;font-size:10.5px;color:var(--sub);font-weight:500;margin-top:2px;}
+  .pe .ct{display:flex;align-items:center;gap:7px;}
+  .pe .n{min-width:30px;text-align:center;font-size:16px;font-weight:700;
+    font-variant-numeric:tabular-nums;}
+  .pb{width:40px;height:40px;padding:0;font-size:17px;font-weight:700;background:var(--card3);
+    border:1px solid var(--line2);color:var(--txt);border-radius:10px;line-height:1;}
+  .pe.on{border-color:var(--azul);background:rgba(91,155,243,.07);}
+  .pe-tot{display:flex;justify-content:space-between;font-size:12.5px;color:var(--txt2);
+    font-weight:700;padding:9px 11px 0;border-top:1px solid var(--line);margin-top:3px;}
+  .pe-edit{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:12px 13px;margin-top:10px;box-shadow:var(--sh);}
+  .pe-edit .h{font-size:12.5px;font-weight:700;margin-bottom:9px;display:flex;
+    justify-content:space-between;align-items:baseline;}
+
+  /* ---------- topbar ---------- */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;padding:14px 0 13px;margin-bottom:6px;
+    background:linear-gradient(180deg, var(--bg) 72%, rgba(11,14,19,0));}
+  .topbar h1{margin:0;}
+  .tabs{display:flex;gap:3px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:4px;flex-shrink:0;}
+  .tab{width:auto;background:none;border:none;border-radius:9px;padding:11px 15px;font-size:12.5px;
+    font-weight:680;color:var(--sub);cursor:pointer;font-family:inherit;letter-spacing:-.1px;}
+  .tab.on{background:var(--card3);color:var(--txt);}
+
+  /* ---------- dashboard ---------- */
+  .dwrap{position:relative;}
+  .sec{margin-bottom:12px;}
+  .sec-t{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;
+    font-weight:800;margin:20px 0 8px;display:flex;align-items:center;gap:9px;}
+  .sec-t::after{content:"";flex:1;height:1px;background:var(--line);}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:15px;box-shadow:var(--sh);}
+  .panel.tight{padding:13px;}
+
+  .hero-kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);
+    padding:18px;display:flex;align-items:center;gap:18px;box-shadow:var(--sh);position:relative;
+    overflow:hidden;}
+  .hero-kpi::after{content:"";position:absolute;right:-50px;top:-50px;width:170px;height:170px;
+    border-radius:50%;background:radial-gradient(circle, rgba(91,155,243,.13), transparent 70%);}
+  .ring{position:relative;flex-shrink:0;}
+  .ring svg{display:block;transform:rotate(-90deg);}
+  .ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;}
+  .ring .mid b{font-size:22px;font-weight:800;letter-spacing:-1.1px;font-variant-numeric:tabular-nums;}
+  .ring .mid small{font-size:8px;color:var(--sub);text-transform:uppercase;letter-spacing:.9px;font-weight:800;}
+  .hk-l{flex:1;min-width:0;}
+  .hk-l .lb{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.1px;font-weight:800;}
+  .hk-l .nm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:33px;font-weight:700;letter-spacing:-2px;margin:6px 0 3px;line-height:1;
+    color:var(--azul);font-feature-settings:"tnum";}
+  .hk-l .un{font-size:12px;color:var(--sub);line-height:1.5;}
+  .hk-l .df{font-size:11.5px;color:var(--txt2);margin-top:8px;padding-top:8px;
+    border-top:1px solid var(--line);line-height:1.5;}
+
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 11px;
+    box-shadow:var(--sh);}
+  .kpi .k{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.8px;
+    font-weight:800;line-height:1.25;}
+  .kpi .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:21px;font-weight:700;letter-spacing:-1.1px;margin-top:7px;line-height:1;
+    font-feature-settings:"tnum";}
+  .kpi .v small{font-size:10px;color:var(--sub);font-family:inherit;font-weight:600;letter-spacing:0;}
+  .kpi .sub2{font-size:10px;color:var(--sub);margin-top:5px;}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .tbl th{text-align:left;font-size:9.5px;color:var(--sub);text-transform:uppercase;
+    letter-spacing:.8px;font-weight:800;padding:0 0 8px;border-bottom:1px solid var(--line2);}
+  .tbl th.r,.tbl td.r{text-align:right;}
+  .tbl td{padding:9px 0;border-bottom:1px solid rgba(35,44,56,.7);}
+  .tbl tbody tr:last-child td{border-bottom:none;}
+  .tbl td.nm{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+  .tbl td.v{font-variant-numeric:tabular-nums;font-weight:700;}
+  .tbl td.pc{color:var(--sub);font-variant-numeric:tabular-nums;width:42px;font-size:11.5px;}
+  .mini{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;}
+
+  .bars{display:flex;align-items:flex-end;gap:4px;height:96px;margin-top:4px;}
+  .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+    height:100%;gap:5px;}
+  .bars .b i{display:block;width:100%;border-radius:4px 4px 2px 2px;min-height:3px;}
+  .bars .b span{font-size:9.5px;color:var(--sub);font-variant-numeric:tabular-nums;}
+  .bars .b b{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt2);}
+
+  .stack{display:flex;height:12px;border-radius:7px;overflow:hidden;background:var(--card2);
+    margin-bottom:13px;}
+  .stack span{display:block;height:100%;}
+  .lgd2{display:flex;flex-direction:column;gap:9px;}
+  .lgd2 .row{display:flex;align-items:center;gap:9px;font-size:12.5px;}
+  .lgd2 .sw{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+  .lgd2 .nm{flex:1;color:var(--txt);min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;font-weight:600;}
+  .lgd2 .vl{font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;}
+  .lgd2 .pc{font-size:11px;color:var(--sub);width:36px;text-align:right;
+    font-variant-numeric:tabular-nums;}
+
+  .empty-d{text-align:center;color:var(--sub);font-size:13px;padding:38px 20px;line-height:1.65;}
+  .duas{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* ---------- painel de espessura ---------- */
+  .esp-list{display:flex;flex-direction:column;gap:8px;}
+  .ex{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 14px;box-shadow:var(--sh);}
+  .ex .top{display:flex;align-items:center;gap:10px;}
+  .ex .cm{font-size:15px;font-weight:700;letter-spacing:-.3px;flex:1;}
+  .ex .cm small{font-size:10.5px;color:var(--sub);font-weight:600;letter-spacing:0;margin-left:5px;}
+  .ex .pc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:15px;font-weight:700;letter-spacing:-.6px;}
+  .ex .pc small{font-size:10px;color:var(--sub);font-family:inherit;font-weight:600;letter-spacing:0;}
+  .ex .bar{height:4px;border-radius:3px;background:var(--card2);margin-top:10px;overflow:hidden;}
+  .ex .bar span{display:block;height:100%;border-radius:3px;}
+  .ex .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--sub);}
+  .ex .foot b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt2);}
+
+  /* ---------- cartoes de material ---------- */
+  .mt-list{display:flex;flex-direction:column;gap:8px;}
+  .mt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px 15px;cursor:pointer;transition:border-color .16s,background .16s,transform .08s;
+    box-shadow:var(--sh);}
+  .mt:active{background:var(--card2);transform:scale(.99);}
+  .mt .top{display:flex;align-items:center;gap:10px;}
+  .mt .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .mt .nm{font-size:14.5px;font-weight:670;letter-spacing:-.22px;flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mt .m2{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:15px;font-weight:700;letter-spacing:-.6px;font-feature-settings:"tnum";}
+  .mt .m2 small{font-size:10px;color:var(--sub);font-family:inherit;font-weight:600;letter-spacing:0;}
+  .mt .bar{height:4px;border-radius:3px;background:var(--card2);margin-top:11px;overflow:hidden;}
+  .mt .bar span{display:block;height:100%;border-radius:3px;}
+  .mt .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;
+    color:var(--sub);letter-spacing:-.05px;}
+  .mt .foot b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt2);}
+
+  .fam-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 4px;margin-bottom:10px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .fam-tabs::-webkit-scrollbar{display:none;}
+  .ft{width:auto;flex-shrink:0;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:11px 16px;font-size:12.5px;font-weight:660;color:var(--sub);
+    font-family:inherit;cursor:pointer;letter-spacing:-.1px;}
+  .ft.on{background:var(--card3);color:var(--txt);border-color:var(--azul);}
+
+  /* ---------- modal de detalhes ---------- */
+  .ov{position:fixed;inset:0;background:rgba(4,6,9,.76);backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;
+      z-index:60;}
+  .ov.on{display:flex;}
+  .sheet{background:var(--bg2);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+    border-radius:24px 24px 0 0;padding:14px 18px calc(32px + env(safe-area-inset-bottom));
+    animation:up .26s cubic-bezier(.2,.8,.3,1);-webkit-overflow-scrolling:touch;
+    border-top:1px solid var(--line2);box-shadow:0 -20px 60px -20px rgba(0,0,0,.8);}
+  @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .grab{width:40px;height:4px;border-radius:3px;background:var(--line2);margin:0 auto 16px;}
+  .sh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .sh-proj{font-size:21px;font-weight:700;letter-spacing:-.55px;line-height:1.2;}
+  .sh-sub{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.55;}
+  .xbtn{background:var(--card2);border:1px solid var(--line2);color:var(--sub);width:42px;height:42px;
+    border-radius:50%;font-size:16px;padding:0;flex-shrink:0;line-height:1;font-weight:400;}
+  .big{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:18px 0 4px;}
+  .big > div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 10px;text-align:center;}
+  .big .k{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.75px;font-weight:800;}
+  .big .v{font-size:20px;font-weight:700;margin-top:6px;letter-spacing:-.75px;
+    font-variant-numeric:tabular-nums;line-height:1;}
+  .big .v small{font-size:11px;color:var(--sub);font-weight:600;display:block;margin-top:3px;}
+  .sh-h{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.3px;
+    font-weight:800;margin:24px 0 10px;}
+  .bar{display:flex;height:12px;border-radius:7px;overflow:hidden;background:var(--card2);
+    margin-bottom:12px;}
+  .bar span{display:block;height:100%;}
+  .lgd{display:flex;flex-direction:column;gap:9px;}
+  .lgd > div{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .lgd .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .lgd .nm{flex:1;color:var(--txt);font-weight:600;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;}
+  .lgd .vl{font-variant-numeric:tabular-nums;font-weight:700;}
+  .lgd .pc{font-size:11.5px;color:var(--sub);width:40px;text-align:right;
+    font-variant-numeric:tabular-nums;}
+  .kv{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:11px 0;
+    border-bottom:1px solid var(--line);}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--sub);}
+  .kv .v{font-weight:650;text-align:right;font-variant-numeric:tabular-nums;}
+  .sh-note{background:var(--card2);border:1px solid var(--line);border-radius:12px;
+    padding:13px 14px;font-size:13px;color:var(--txt2);line-height:1.55;margin-top:12px;}
+  .sh-btns{display:flex;gap:9px;margin-top:24px;}
+  .sh-btns button{font-size:15px;padding:16px;}
+
+  /* ---------- pop-up do material ---------- */
+  .big-kpi{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px;}
+  .bk{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;
+    box-shadow:var(--sh);}
+  .bk .k{font-size:9.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.85px;font-weight:800;}
+  .bk .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:23px;font-weight:700;letter-spacing:-1.1px;margin-top:7px;line-height:1;
+    font-feature-settings:"tnum";}
+  .bk .v small{font-size:11px;color:var(--sub);font-family:inherit;font-weight:600;letter-spacing:0;}
+  .bk .sub2{font-size:10.5px;color:var(--sub);margin-top:6px;line-height:1.4;}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:62px;margin-top:12px;}
+  .spark .s{flex:1;border-radius:3px 3px 0 0;min-height:3px;}
+  .lista-rows .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;
+    padding:10px 0;border-bottom:1px solid rgba(35,44,56,.7);}
+  .lista-rows .row:last-child{border-bottom:none;}
+  .lista-rows .row .a{color:var(--sub);min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;}
+  .lista-rows .row .b{font-variant-numeric:tabular-nums;font-weight:700;flex-shrink:0;}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .pill{font-size:10.5px;padding:5px 10px;border-radius:20px;background:var(--card2);
+    color:var(--sub);font-weight:650;border:1px solid var(--line);}
+  .acao{background:rgba(91,155,243,.07);border:1px solid rgba(91,155,243,.26);
+    border-radius:var(--r);padding:14px 15px;font-size:12.5px;line-height:1.6;
+    color:var(--txt2);margin-top:16px;}
+  .acao b{color:var(--azul);}
+
+  .foot{font-size:11.5px;color:#5A6472;line-height:1.65;margin-top:26px;text-align:center;}
+
+  .chapas{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .chapas .val{flex:1;background:var(--card2);border:1px solid var(--line2);border-radius:12px;
+    padding:13px;text-align:center;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .chapas .val small{font-size:12px;color:var(--sub);font-weight:500;display:block;margin-top:1px;}
+  .cb{width:56px;height:54px;padding:0;font-size:15px;background:var(--card2);
+    border:1px solid var(--line2);color:var(--txt);border-radius:12px;font-weight:700;}
+
+  .vchips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .vchip{background:var(--card2);border:1px solid var(--line2);border-radius:11px;padding:12px 16px;
+    font-size:13.5px;color:var(--txt);cursor:pointer;font-weight:650;font-family:inherit;width:auto;}
+  .hint{font-size:11.5px;color:#5A6472;margin-top:8px;line-height:1.55;}
+
+  /* ---------- topbar ---------- */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;padding:14px 0 13px;margin-bottom:6px;
+    background:linear-gradient(180deg, var(--bg) 72%, rgba(11,14,19,0));}
+  .topbar h1{margin:0;}
+  .tabs{display:flex;gap:3px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:4px;flex-shrink:0;}
+  .tab{width:auto;background:none;border:none;border-radius:9px;padding:11px 15px;font-size:12.5px;
+    font-weight:680;color:var(--sub);cursor:pointer;font-family:inherit;letter-spacing:-.1px;}
+  .tab.on{background:var(--card3);color:var(--txt);}
+
+    .foot{font-size:11.5px;color:#5A6472;line-height:1.65;margin-top:26px;text-align:center;}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Corte</h1>
+  <div class="tabs">
+    <button type="button" class="tab on" id="tabApp">Serviço</button>
+    <button type="button" class="tab" id="tabDash">Dashboard</button>
+  </div>
+</div>
+
+<div id="viewApp">
+
+<div class="hero">
+  <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Nenhum serviço aberto</span></div>
+  <div class="clock" id="clock">00:00:00</div>
+  <div class="taskname" id="taskNow">Preencha o serviço abaixo</div>
+</div>
+
+<div id="formBlock" class="card">
+  <label for="proj">Nº do projeto / OS</label>
+  <input id="proj" placeholder="ex: OS-1225" autocomplete="off">
+
+  <div class="row2">
+    <div>
+      <label for="tipo">Tipo de peça</label>
+      <select id="tipo">
+        <option>Bancada</option><option>Escada</option><option>Ilha</option>
+        <option>Lavatório</option><option>Nicho</option><option>Rodapé</option>
+        <option>Mesa</option><option>Soleira</option><option>Aparador</option>
+        <option>Peitoril</option><option>Tampo</option><option>Outro</option>
+      </select>
+    </div>
+    <div>
+      <label for="fam">Família</label>
+      <select id="fam"></select>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div>
+      <label for="mat">Material</label>
+      <select id="mat"></select>
+    </div>
+    <div>
+      <label for="acab">Acabamento</label>
+      <select id="acab"></select>
+    </div>
+  </div>
+
+  <div class="row2" id="loteWrap" style="display:none">
+    <div>
+      <label for="lote">Lote</label>
+      <select id="lote">
+        <option value="">— sem lote —</option>
+        <option value="1">Lote 1</option><option value="2">Lote 2</option>
+        <option value="3">Lote 3</option><option value="4">Lote 4</option>
+        <option value="5">Lote 5</option>
+      </select>
+    </div>
+    <div></div>
+  </div>
+
+  <div class="row2">
+    <div id="novoMatWrap" style="display:none">
+      <label for="novoNome">Nome do material novo</label>
+      <input id="novoNome" placeholder="ex: Verde Esmeralda">
+    </div>
+    <div id="novaFamWrap" style="display:none">
+      <label for="novaFam">Família do material novo</label>
+      <select id="novaFam"></select>
+    </div>
+  </div>
+  <div id="novoAcabWrap" style="display:none">
+    <label for="novoAcab">Acabamento do material novo</label>
+    <select id="novoAcab">
+      <option>Polido</option><option>Escovado</option><option>Levigado</option>
+      <option>Bruto</option><option>Flameado</option><option>Jateado</option>
+    </select>
+  </div>
+  <button type="button" class="btn-mid" id="addMat" style="margin-top:10px;font-size:14px;padding:15px"Adicionar material novo</button>
+  <button type="button" class="btn-mid" id="addMatOk" style="margin-top:8px;font-size:14px;padding:15px;display:none">Salvar material</button>
+
+  <div id="m2Wrap">
+    <label for="m2">m² totais do projeto</label>
+    <input id="m2" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+    <div class="hint">O m² vem calculado no projeto. Se usar 2 chapas e meia, entra uma vez só aqui.</div>
+  </div>
+  <div class="hint" id="m2Nota" style="display:none;background:var(--card2);border:1px solid var(--line2);
+    border-radius:11px;padding:11px 12px;line-height:1.5">Na arte funerária o m² não é lançado.
+    O serviço é medido por peças e por tempo de serra.</div>
+
+  <label>Categoria</label>
+  <div class="seg" id="segCat">
+    <button type="button" class="sg on" data-cat="civil">Construção civil</button>
+    <button type="button" class="sg" data-cat="funeraria">Arte funerária</button>
+  </div>
+  <div class="hint" id="catHint">Espessuras de 2 e 3 cm. Para 4 cm ou mais, use Arte funerária.</div>
+
+  <label>Peças por espessura</label>
+  <div class="pecas-esp" id="pecasEsp"></div>
+  <div class="hint">Defina o que vai cortar neste projeto. Você pode ajustar depois, se mudar no meio do serviço.</div>
+
+  <label for="vel">Velocidade de avanço</label>
+  <input id="vel" type="number" inputmode="decimal" step="0.1" min="0" placeholder="m/min">
+  <div class="vchips" id="vchips"></div>
+
+  <label for="obs">Observação</label>
+  <input id="obs" placeholder="opcional">
+</div>
+
+<div class="pe-edit" id="pecasEdit" style="display:none">
+  <div class="h"><span>Peças deste serviço</span><span id="peTot">0 peças</span></div>
+  <div class="pecas-esp" id="pecasRun"></div>
+</div>
+
+<div class="card" id="chapasBox" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+    <span style="font-size:13px;font-weight:700">Chapas marcadas neste serviço</span>
+    <span style="font-size:19px;font-weight:700" id="chapaTot">0</span>
+  </div>
+  <div class="hint" id="chapaDet">Nenhuma chapa marcada ainda. Ao pegar uma chapa, toque em +1 ou +½ no cartão correspondente.</div>
+</div>
+
+<p class="hint" id="instrucao" style="display:none"></p>
+
+<div class="grupo" id="grupoChapa" style="margin-top:14px">
+  <div class="grupo-h">Buscar material</div>
+  <div id="stagesChapa"></div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-h">Na serra</div>
+  <div id="stagesSerra"></div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-h">Outros</div>
+  <div id="stagesOutros"></div>
+</div>
+
+<button id="btnBump" class="btn-mid" style="margin-top:8px">Pausa comum</button>
+<button id="btn" class="btn-start" style="margin-top:12px">Iniciar serviço</button>
+
+<div class="stat-grid" style="margin-top:18px">
+  <div class="stat"><div class="k">M² no período</div><div class="v" id="sM2">0<span class="u"> m²</span></div></div>
+  <div class="stat"><div class="k">Horas totais</div><div class="v" id="sH">0<span class="u"> h</span></div></div>
+  <div class="stat"><div class="k">M²/h só corte</div><div class="v" id="sM2HC">0,00<span class="u"> m²/h</span></div></div>
+  <div class="stat"><div class="k">M²/h ciclo completo</div><div class="v" id="sM2HT">0,00<span class="u"> m²/h</span></div></div>
+  <div class="stat"><div class="k">Serviços</div><div class="v" id="sN">0</div></div>
+  <div class="stat"><div class="k">Busca avulsa hoje</div><div class="v" id="sAvulsa">0<span class="u"> min</span></div></div>
+</div>
+
+<div class="section-h">Serviço aberto</div>
+<div id="runningList"></div>
+
+<div class="section-h">Histórico <span style="text-transform:none;letter-spacing:0;font-weight:500;color:#5A6472">· toque num serviço para ver os detalhes</span></div>
+<div id="histList"></div>
+
+<div class="section-h">Backup dos dados</div>
+
+<div class="bk-box">
+  <div class="t"Salvar uma cópia</div>
+  <div class="d">Gera um arquivo CSV com todos os serviços finalizados. Guarde no WhatsApp,
+    no e-mail ou no Drive — é a sua garantia se o celular quebrar.</div>
+  <button id="btnExport" class="btn-mid">Baixar o CSV</button>
+</div>
+
+<div class="bk-box">
+  <div class="t"Carregar um CSV</div>
+  <div class="d">Traz de volta os dados de uma cópia. Serve para trocar de celular ou recuperar
+    registros apagados.</div>
+  <div class="drop" id="drop">
+    
+    <span class="l1">Escolher o arquivo</span>
+    <span class="l2">ou arraste o CSV para esta área</span>
+  </div>
+  <input type="file" id="fileCsv" accept=".csv,text/csv" style="display:none">
+  <div id="prevBox"></div>
+</div>
+
+<button id="btnClear" class="btn-ghost" style="margin-top:10px">Apagar todos os registros</button>
+
+</div><!-- /viewApp -->
+
+<div id="viewDash" style="display:none">
+  <div id="dashBody"></div>
+</div>
+
+<div class="ov" id="ov">
+  <div class="sheet" id="sheet">
+    <div class="grab"></div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+
+<div class="foot">
+  Os registros ficam salvos só neste celular, neste navegador.<br>
+  Não vão para nenhum servidor. Baixe o CSV de vez em quando.
+</div>
+
+<script>
+"use strict";
+const KEY = 'corte_registros_v3';
+
+const $ = id => document.getElementById(id);
+
+let registros = [];
+try { registros = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ registros = []; }
+let velocidades = [];
+try { velocidades = JSON.parse(localStorage.getItem('corte_vels')) || []; } catch(e){ velocidades = []; }
+
+/* ---------- ETAPAS: as 5 contagens ----------
+   corte   : a serra trabalhando           (etapa principal, pode rodar com avulsa)
+   chapa   : buscar chapa p/ ESTE servico  (para o corte)
+   mesa    : tirar pecas da mesa           (para o corte)
+   avulsa  : buscar chapa p/ outro projeto (roda EM PARALELO ao corte)
+   pausa   : almoco, cliente, chefe        (para tudo)
+*/
+const ETAPAS = [
+  {id:'chapa',  nome:'Buscar chapa',        hint:'chapa ou retalho para este projeto',      cor:'var(--lar)'},
+  {id:'serra',  nome:'Ajustar a serra',     hint:'medidas, encaixe da peça e regulagem da máquina',      cor:'#E8B84B'},
+  {id:'corte',  nome:'Cortando',            hint:'a serra trabalhando',                                  cor:'var(--azul)'},
+  {id:'mesa',   nome:'Tirar peças da mesa', hint:'retirar as peças cortadas da mesa',                    cor:'var(--roxo)'},
+  {id:'avulsa', nome:'Busca avulsa',        hint:'material para outro projeto, sem parar o corte',   cor:'#5BB8C4'},
+  {id:'pausa',  nome:'Pausa comum',         hint:'almoço, atender cliente, falar com o chefe',           cor:'var(--verm)'},
+];
+
+/* ---------- peças por espessura ----------
+   O usuário define, antes de começar, quantas peças de cada espessura
+   o projeto tem. Fica editável durante o serviço. */
+let CATEGORIA = 'civil';
+
+const ESPESSURAS = [
+  {cm:2, passadas:1},
+  {cm:3, passadas:1},
+  {cm:4, passadas:2},
+  {cm:5, passadas:2},
+  {cm:6, passadas:3},
+  {cm:8, passadas:4}
+];
+
+function pecasVazias(){ return ESPESSURAS.map(e => ({cm:e.cm, passadas:e.passadas, n:0})); }
+function pecasDo(r){ return (r && r.pecasEsp) ? r.pecasEsp : null; }
+function totalPecas(lista){ return (lista||[]).reduce((s,p)=> s + (p.n||0), 0); }
+function totalPassadas(lista){
+  return (lista||[]).reduce((s,p)=> s + (p.n||0) * (p.passadas||1), 0);
+}
+function resumoPecas(lista){
+  const at = (lista||[]).filter(p => p.n > 0);
+  if (!at.length) return 'sem peças definidas';
+  return at.map(p => p.n + '× ' + p.cm + 'cm').join(' · ');
+}
+
+/* ---------- espessura na serra ----------
+   A espessura é a que está na máquina AGORA. Trocar de espessura não para
+   o cronômetro: o tempo passa a contar para o outro lote. Voltar numa
+   espessura já usada SOMA no mesmo lote. */
+let espAtual = null;
+
+function espessurasPara(categoria){
+  return ESPESSURAS.filter(e => categoria === 'funeraria' ? true : e.cm <= 3);
+}
+function espDisponiveis(r){
+  const cat = (r && r.categoria) || 'civil';
+  return espessurasPara(cat).map(e => e.cm);
+}
+function loteDe(r, cm){
+  const L = ((r && r.lotes) || []).filter(l => l.cm === cm);
+  const base = L.reduce((s,l)=> s + l.ms, 0);
+  const passadas = (ESPESSURAS.find(e=>e.cm===cm)||{}).passadas || 1;
+  const n = (r && r.pecasEsp || []).filter(p => p.cm === cm).reduce((s,p)=> s + p.n, 0);
+  const ativo = (espAtual === cm) && (etapa === 'corte') && !pausaIni;
+  return { passadas: passadas, n: n,
+           ms: base + (ativo ? Date.now() - new Date(espIni).getTime() : 0) };
+}
+let espIni = null;
+
+function escolherEspessura(cm){
+  const r = aberto(); if (!r) return;
+  if (espAtual === cm) return;              // já está nesta espessura
+  if (espAtual !== null && espIni){         // fecha o período da anterior
+    r.lotes = r.lotes || [];
+    r.lotes.push({ cm: espAtual, ms: Date.now() - new Date(espIni).getTime() });
+  }
+  espAtual = cm; espIni = new Date().toISOString();
+  if (etapa !== 'corte'){                   // selecionou espessura: assume o corte
+    if (pausaIni) pararPausa(r);
+    fecharEtapaAtual(r);
+    etapa = 'corte'; etapaIni = new Date().toISOString();
+  }
+  salvar(); render();
+}
+function somarPeca(cm, d){
+  const r = aberto(); if (!r) return;
+  r.pecasEsp = r.pecasEsp || [];
+  let p = r.pecasEsp.find(x => x.cm === cm);
+  if (!p){ p = {cm:cm, passadas:(ESPESSURAS.find(e=>e.cm===cm)||{}).passadas||1, n:0};
+            r.pecasEsp.push(p); }
+  p.n = Math.max(0, p.n + d);
+  r.pecas = totalPecas(r.pecasEsp);
+  salvar(); render();
+}
+
+/* ---------- tipos de chapa marcáveis ----------
+   espessura em cm + estado do material. O retalho aparece separado
+   porque nem sempre se busca chapa inteira. */
+const CHAPAS_TIPO = [
+  {id:'e2',   nome:'2 cm',       esp:2},
+  {id:'e3',   nome:'3 cm',       esp:3},
+  {id:'e4',   nome:'4 cm',       esp:4},
+  {id:'e5',   nome:'5 cm',       esp:5},
+  {id:'e6',   nome:'6 cm',       esp:6},
+  {id:'e8',   nome:'8 cm',       esp:8},
+  {id:'ret',  nome:'Retalho',    esp:null},
+  {id:'meia', nome:'Meia chapa', esp:null},
+  {id:'int',  nome:'Inteira',    esp:null}
+];
+
+/* ---------- estado ---------- */
+let etapa = null;        // etapa em foco do servico
+let etapaIni = null;     // ISO inicio da etapa atual
+let avulsaIni = null;    // ISO inicio da busca avulsa (paralela)
+let pausaIni = null;     // ISO inicio da pausa comum
+
+function salvar(){ localStorage.setItem(KEY, JSON.stringify(registros)); }
+
+/* ---------- chapas marcadas durante o servico ----------
+   Cada marcacao guarda QUANDO e DE ONDE veio (busca p/ este projeto ou avulsa).
+   O total do servico nao existe no cadastro: ele nasce das marcacoes. */
+function marcarChapa(r, origemId, delta, tipoId){
+  r.chapasMarcadas = r.chapasMarcadas || [];
+  if (delta < 0){
+    for (let i = r.chapasMarcadas.length - 1; i >= 0; i--){
+      if (r.chapasMarcadas[i].origem === origemId){ r.chapasMarcadas.splice(i,1); break; }
+    }
+  } else {
+    const tipo = CHAPAS_TIPO.find(t => t.id === tipoId) || {id:'int', nome:'Inteira', esp:null};
+    r.chapasMarcadas.push({
+      origem: origemId, tipo: tipo.id, nome: tipo.nome, esp: tipo.esp,
+      quando: new Date().toISOString(), qtd: 1
+    });
+  }
+  salvar(); render();
+}
+function chapasDe(r, origemId){
+  return (r.chapasMarcadas || []).filter(c => c.origem === origemId).length;
+}
+function chapasTotal(r){ return (r.chapasMarcadas || []).length; }
+
+/* resumo curto do que já foi marcado, ex: "3 cm ×2 · Retalho" */
+function resumoChapas(r, origemId){
+  const L = (r.chapasMarcadas || []).filter(c => c.origem === origemId);
+  const cont = {};
+  L.forEach(c => { const n = c.nome || 'Inteira'; cont[n] = (cont[n]||0) + 1; });
+  return Object.keys(cont).map(n => (cont[n] > 1 ? n + ' ×' + cont[n] : n)).join(' · ');
+}
+
+/* espessura predominante no serviço (a que mais aparece) */
+function espessuraDe(r){
+  const L = (r.chapasMarcadas || []).filter(c => c.esp);
+  if (!L.length) return null;
+  const cont = {};
+  L.forEach(c => { cont[c.esp] = (cont[c.esp]||0) + 1; });
+  return +Object.keys(cont).sort((a,b)=> cont[b]-cont[a])[0];
+}
+function salvarVels(){ localStorage.setItem('corte_vels', JSON.stringify(velocidades)); }
+function aberto(){ return registros.find(r => !r.fim); }
+
+/* ---------- formatacao ---------- */
+function fmtDur(ms){
+  if (!isFinite(ms) || ms < 0) ms = 0;
+  const t = Math.floor(ms/1000);
+  return String(Math.floor(t/3600)).padStart(2,'0') + ':' +
+         String(Math.floor((t%3600)/60)).padStart(2,'0') + ':' +
+         String(t%60).padStart(2,'0');
+}
+function fmtCurto(ms){
+  if (!isFinite(ms) || ms <= 0) return '0 min';
+  const min = Math.round(ms/60000);
+  if (min < 1) return '<1 min';
+  const h = Math.floor(min/60), m = min%60;
+  return h === 0 ? m + ' min' : h + 'h' + String(m).padStart(2,'0');
+}
+function fmtData(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function num(v){
+  if (v === '' || v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(',','.'));
+  return isNaN(n) ? 0 : n;
+}
+function nBR(v, dec){ return (isFinite(v) ? v : 0).toFixed(dec).replace('.',','); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- tempos ---------- */
+function acumulado(r, campo){ return ((r && r[campo]) || []).reduce((s,p)=> s + (p.ms || 0), 0); }
+function msEtapa(r, id){
+  const base = acumulado(r, id);
+  if (!r || r.fim) return base;
+  let ativo = false;
+  if (id === 'avulsa')      ativo = !!avulsaIni;
+  else if (id === 'pausa')  ativo = !!pausaIni;
+  else                      ativo = (etapa === id) && !pausaIni;
+  return base + (ativo ? Date.now() - new Date(
+      id === 'avulsa' ? avulsaIni : id === 'pausa' ? pausaIni : etapaIni).getTime() : 0);
+}
+function totalAvulsaHoje(){
+  const hj = new Date().toDateString();
+  let ms = 0;
+  registros.forEach(r => (r.avulsa || []).forEach(p => {
+    const d = new Date(p.fim || p.ini);
+    if (d.toDateString() === hj) ms += p.ms || 0;
+  }));
+  if (avulsaIni && new Date(avulsaIni).toDateString() === hj)
+    ms += Date.now() - new Date(avulsaIni).getTime();
+  return ms;
+}
+
+/* ---------- fechamento de intervalos ---------- */
+function fechar(id, r, ini){
+  if (!r || !ini) return;
+  const ms = Date.now() - new Date(ini).getTime();
+  r[id] = r[id] || [];
+  r[id].push({ ini: ini, fim: new Date().toISOString(), ms: ms });
+}
+function fecharEtapaAtual(r){
+  if (!r || !etapa || !etapaIni) return;
+  fechar(etapa, r, etapaIni);
+  etapa = null; etapaIni = null;
+}
+function pararAvulsa(r){ fechar('avulsa', r, avulsaIni); avulsaIni = null; }
+function pararPausa(r){ fechar('pausa', r, pausaIni); pausaIni = null; }
+
+/* ---------- acoes ---------- */
+function iniciarServico(){
+  const m2 = (CATEGORIA === 'funeraria') ? 0 : num($('m2').value);
+  if (!$('proj').value.trim() && m2 <= 0 && totalPecas(PECAS_TMP) <= 0){
+    alert('Preencha o nº do projeto, o m² ou as peças por espessura.');
+    return;
+  }
+  const vel = num($('vel').value);
+  if (vel > 0 && velocidades.indexOf(vel) === -1){
+    velocidades.unshift(vel); velocidades = velocidades.slice(0,6); salvarVels();
+  }
+  registros.push({
+    id: String(Date.now()) + Math.floor(Math.random()*999),
+    proj: $('proj').value.trim() || 'sem nº',
+    tipo: $('tipo').value,
+    mat: materialEscolhido(),
+    fam: $('fam').value,
+    pecas: totalPecas(PECAS_TMP),
+    pecasEsp: PECAS_TMP.filter(p => p.n > 0).map(p => ({cm:p.cm, passadas:p.passadas, n:p.n})),
+    m2: m2,
+    categoria: CATEGORIA,
+    lotes: [],
+    vel: vel, obs: $('obs').value.trim(),
+    origem: '',
+    chapasMarcadas: [],
+    inicio: new Date().toISOString(), fim: null,
+    corte: [], chapa: [], serra: [], mesa: [], avulsa: [], pausa: []
+  });
+  PECAS_TMP = pecasVazias();
+  espAtual = null; espIni = null;
+  renderPecasForm();
+  salvar(); render();
+}
+
+function escolherEtapa(id){        // toque num cartao de etapa
+  const r = aberto();
+  if (!r) return;
+  const def = ETAPAS.find(e => e.id === id);
+
+  if (id === 'avulsa'){            // paralela: liga/desliga sem mexer no resto
+    if (avulsaIni){ pararAvulsa(r); } else { avulsaIni = new Date().toISOString(); }
+    salvar(); render(); return;
+  }
+  if (id === 'pausa'){             // para tudo
+    if (pausaIni){ pararPausa(r); render(); salvar(); return; }
+    fecharEtapaAtual(r);
+    if (avulsaIni) pararAvulsa(r);
+    pausaIni = new Date().toISOString();
+    salvar(); render(); return;
+  }
+  // etapas que ocupam a serra
+  if (pausaIni) pararPausa(r);
+  if (etapa === id){               // tocou de novo na mesma: so pausa a contagem
+    fecharEtapaAtual(r);
+  } else {
+    fecharEtapaAtual(r);
+    etapa = id; etapaIni = new Date().toISOString();
+  }
+  salvar(); render();
+}
+
+function finalizar(){
+  const r = aberto();
+  if (!r) return;
+  if (espAtual !== null && espIni){
+    r.lotes = r.lotes || [];
+    r.lotes.push({ cm: espAtual, ms: Date.now() - new Date(espIni).getTime() });
+    espAtual = null; espIni = null;
+  }
+  fecharEtapaAtual(r); pararPausa(r); pararAvulsa(r);
+  r.fim = new Date().toISOString();
+  etapa = null; etapaIni = null;
+  salvar(); render();
+}
+
+/* ---------- render ---------- */
+function render(){
+  const r = aberto();
+  const tem = !!r;
+
+  /* ---------- grupos de etapas ---------- */
+  const GRUPOS = {
+    chapa:  ['chapa'],
+    serra:  ['serra','corte','mesa'],
+    outros: ['avulsa','pausa']
+  };
+
+  function cartaoEtapa(e){
+    const ms = tem ? msEtapa(r, e.id) : 0;
+    let on = false;
+    if (tem){
+      if (e.id === 'avulsa')      on = !!avulsaIni;
+      else if (e.id === 'pausa')  on = !!pausaIni;
+      else                        on = (etapa === e.id) && !pausaIni;
+    }
+    const est = on ? 'ATIVO<span class="pulse"></span>' : 'PARADO';
+    const ehChapa = (e.id === 'chapa' || e.id === 'avulsa');
+    const qtd = tem ? chapasDe(r, e.id) : 0;
+
+    const marcar = ehChapa && tem
+      ? '<div class="marc">' +
+          CHAPAS_TIPO.map(t =>
+            '<button type="button" class="mb" data-chapa="' + e.id + '|' + t.id + '">' + t.nome + '</button>'
+          ).join('') +
+          '<button type="button" class="mb mb-del" data-soma="' + e.id + '|-0.5">−</button>' +
+        '</div>' +
+        '<div class="marc-info">' +
+          '<span class="mq">' + nBR(qtd,0) + ' marcada(s)</span>' +
+          (qtd && r.chapasMarcadas ? '<span class="mq2">' + resumoChapas(r, e.id) + '</span>' : '') +
+        '</div>'
+      : '';
+
+    /* o cartao Cortando carrega a espessura e o contador de pecas */
+    const espBloco = (e.id === 'corte' && tem)
+      ? '<div class="esp">' +
+          '<div class="esp-h">Espessura na serra agora</div>' +
+          '<div class="esp-l">' +
+            espDisponiveis(r).map(cm => {
+              const lote = loteDe(r, cm);
+              const at = espAtual === cm;
+              return '<div class="esp-i ' + (at ? 'on' : '') + '">' +
+                '<button type="button" class="esp-b" data-esp="' + cm + '">' + cm + ' cm</button>' +
+                (lote.n > 0 || at
+                  ? '<div class="esp-c">' +
+                      '<button type="button" class="pb pb-s" data-pc="' + cm + '|-1">−</button>' +
+                      '<span class="n">' + lote.n + '</span>' +
+                      '<button type="button" class="pb pb-s" data-pc="' + cm + '|1">+</button>' +
+                    '</div>'
+                  : '') +
+              '</div>';
+            }).join('') +
+          '</div>' +
+          (espAtual
+            ? '<div class="esp-r">Cortando <b>' + espAtual + ' cm</b> · ' +
+                (loteDe(r, espAtual).n) + ' peça(s) · ' +
+                (loteDe(r, espAtual).passadas) + ' passadas</div>'
+            : '<div class="esp-r">Selecione a espessura antes de cortar.</div>') +
+        '</div>'
+      : '';
+
+    return '<div class="stage ' + (on ? 'on' : '') + (tem ? '' : ' no') + '" ' +
+             'data-etapa="' + e.id + '" style="color:' + e.cor + '">' +
+      '<div class="top">' +
+        '<span class="tt">' + e.nome + '</span>' +
+        '<span class="est">' + est + '</span>' +
+      '</div>' +
+      '<div class="t">' + (on ? fmtDur(ms) : fmtCurto(ms)) + '</div>' +
+      espBloco + marcar +
+      '<div class="foot">' +
+        '<span class="hintx">' + e.hint + '</span>' +
+        '<span class="tot">total do serviço<br>' + fmtCurto(ms) + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  $('stagesChapa').innerHTML  = GRUPOS.chapa.map(id => cartaoEtapa(ETAPAS.find(e=>e.id===id))).join('');
+  $('stagesSerra').innerHTML  = GRUPOS.serra.map(id => cartaoEtapa(ETAPAS.find(e=>e.id===id))).join('');
+  $('stagesOutros').innerHTML = GRUPOS.outros.map(id => cartaoEtapa(ETAPAS.find(e=>e.id===id))).join('');
+
+  document.querySelectorAll('[data-etapa]').forEach(el => {
+    el.onclick = () => escolherEtapa(el.getAttribute('data-etapa'));
+  });
+  document.querySelectorAll('[data-soma]').forEach(b => {
+    b.onclick = ev => {
+      ev.stopPropagation();
+      const rr = aberto(); if (!rr) return;
+      const [origemId, delta] = b.getAttribute('data-soma').split('|');
+      marcarChapa(rr, origemId, num(delta), null);
+    };
+  });
+  document.querySelectorAll('[data-chapa]').forEach(b => {
+    b.onclick = ev => {
+      ev.stopPropagation();
+      const rr = aberto(); if (!rr) return;
+      const [origemId, tipoId] = b.getAttribute('data-chapa').split('|');
+      marcarChapa(rr, origemId, 1, tipoId);
+    };
+  });
+  document.querySelectorAll('[data-esp]').forEach(b => {
+    b.onclick = ev => {
+      ev.stopPropagation();
+      escolherEspessura(Number(b.getAttribute('data-esp')));
+    };
+  });
+  document.querySelectorAll('[data-pc]').forEach(b => {
+    b.onclick = ev => {
+      ev.stopPropagation();
+      const [cm, d] = b.getAttribute('data-pc').split('|');
+      somarPeca(Number(cm), Number(d));
+    };
+  });
+
+  /* hero */
+  const btn = $('btn');
+  if (tem){
+    btn.className = 'btn-stop';
+    btn.textContent = '■ Finalizar serviço (terminei tudo)';
+    $('formBlock').style.display = 'none';
+    $('instrucao').style.display = 'block';
+    $('instrucao').textContent = etapa
+      ? 'Etapa no momento: ' + (ETAPAS.find(e=>e.id===etapa)||{}).nome + '. Selecione a próxima etapa.'
+      : 'Serviço aberto, sem etapa em andamento. Selecione a etapa atual.';
+    $('clock').textContent = fmtDur(Date.now()-new Date(r.inicio).getTime());
+    $('clock').style.color = pausaIni ? 'var(--lar)' : 'var(--txt)';
+    $('dot').style.background = pausaIni ? 'var(--lar)' : (etapa ? 'var(--verde)' : 'var(--sub)');
+    $('statusTxt').textContent = pausaIni ? 'Em pausa' : (etapa ? 'Serviço em andamento' : 'Serviço aberto — sem etapa');
+    $('taskNow').textContent = r.proj + ' · ' + r.tipo + (r.m2 ? ' · ' + nBR(r.m2,2) + ' m²' : '');
+  } else {
+    btn.className = 'btn-start';
+    btn.textContent = '▶ Iniciar serviço';
+    $('formBlock').style.display = 'block';
+    $('instrucao').style.display = 'none';
+    $('clock').textContent = '00:00:00';
+    $('clock').style.color = 'var(--txt)';
+    $('dot').style.background = 'var(--sub)';
+    $('statusTxt').textContent = 'Nenhum serviço aberto';
+    $('taskNow').textContent = 'Preencha o serviço abaixo';
+  }
+
+  /* peças por espessura do serviço aberto (editável) */
+  if (tem){
+    const lista = pecasDo(r) || [];
+    $('pecasEdit').style.display = lista.length ? 'block' : 'none';
+    if (lista.length){
+      $('peTot').textContent = totalPecas(lista) + ' peça(s) · ' +
+        totalPassadas(lista) + ' passadas';
+      desenharPecasEsp($('pecasRun'), lista, () => {
+        r.pecas = totalPecas(lista);
+        salvar(); render();
+      }, false);
+    }
+  } else {
+    $('pecasEdit').style.display = 'none';
+  }
+
+  /* painel de chapas marcadas */
+  if (tem){
+    const t = chapasTotal(r), doProj = chapasDe(r,'chapa'), av = chapasDe(r,'avulsa');
+    $('chapasBox').style.display = 'block';
+    $('chapaTot').textContent = nBR(t,1);
+    $('chapaDet').textContent = t === 0
+      ? 'Nenhuma chapa marcada ainda. Ao pegar uma chapa, toque em +1 ou +½ no cartão correspondente.'
+      : 'Para este projeto: ' + nBR(doProj,1) + '  ·  busca avulsa: ' + nBR(av,1) +
+        '  ·  pode ajustar até finalizar.';
+  } else {
+    $('chapasBox').style.display = 'none';
+  }
+
+  $('btnBump').disabled = !tem;
+  $('btnBump').style.opacity = tem ? '1' : '.4';
+  $('btnBump').textContent = pausaIni ? '▶ Voltar da pausa' : 'Pausa comum (almoço, cliente, etc.)';
+
+  /* servico aberto */
+  if (tem){
+    $('runningList').innerHTML =
+      '<div class="item"><div class="l">' +
+        '<div class="n">' + esc(r.proj) + ' — ' + esc(r.tipo) + '</div>' +
+        '<div class="m">Início ' + fmtData(r.inicio) + ' · ' + esc(r.mat) +
+          (r.vel ? ' · avanço ' + nBR(r.vel,1) + ' m/min' : '') +
+          (chapasTotal(r) ? ' · ' + nBR(chapasTotal(r),1) + ' chapa(s)' : '') + '</div>' +
+        '<div>' + ETAPAS.map(e =>
+          '<span class="tag">' + e.ic + ' ' + fmtCurto(msEtapa(r, e.id)) + '</span>').join('') + '</div>' +
+      '</div><div class="r">' +
+        '<div class="h">' + fmtCurto(Date.now()-new Date(r.inicio).getTime()) + '</div>' +
+        '<div class="m">' + (r.m2 ? nBR(r.m2,2) + ' m²' : 'sem m²') + '</div>' +
+      '</div></div>';
+  } else {
+    $('runningList').innerHTML = '<div class="empty">Nenhum serviço em andamento.</div>';
+  }
+
+  /* historico */
+  const feitos = registros.filter(x => x.fim).slice().reverse();
+  if (!feitos.length){
+    $('histList').innerHTML = '<div class="empty">Os serviços finalizados aparecem nesta lista.</div>';
+  } else {
+    $('histList').innerHTML = feitos.map(x => {
+      const corte = acumulado(x,'corte'), chapa = acumulado(x,'chapa'), serra = acumulado(x,'serra');
+      const mesa = acumulado(x,'mesa'), pausa = acumulado(x,'pausa'), avulsa = acumulado(x,'avulsa');
+      const ciclo = corte + chapa + serra + mesa;
+      const m2hc = (x.m2 > 0 && corte > 0) ? x.m2/(corte/3600000) : null;
+      const m2ht = (x.m2 > 0 && ciclo > 0) ? x.m2/(ciclo/3600000) : null;
+      return '<div class="item clic" data-abrir="' + x.id + '"><div class="l">' +
+        '<div class="n">' + esc(x.proj) + ' — ' + esc(x.tipo) + '</div>' +
+        '<div class="m">' + fmtData(x.inicio) + ' → ' + fmtData(x.fim) + '</div>' +
+        '<div class="m">' + (x.m2 ? nBR(x.m2,2) + ' m²' : 'sem m²') +
+          (x.pecas ? ' · ' + x.pecas + ' pç' : '') +
+          (chapasTotal(x) ? ' · ' + nBR(chapasTotal(x),1) + ' chapa(s)' : '') +
+          (x.vel ? ' · avanço ' + nBR(x.vel,1) : '') + ' · ' + esc(x.mat) + '</div>' +
+        '<div>' +
+          '<span class="tag">' + fmtCurto(corte) + '</span>' +
+          '<span class="tag">' + fmtCurto(chapa) + '</span>' +
+          '<span class="tag">' + fmtCurto(mesa) + '</span>' +
+          (avulsa ? '<span class="tag">' + fmtCurto(avulsa) + '</span>' : '') +
+          (pausa  ? '<span class="tag">' + fmtCurto(pausa) + '</span>'  : '') +
+        '</div>' +
+        (x.obs ? '<div class="m">' + esc(x.obs) + '</div>' : '') +
+      '</div><div class="r">' +
+        '<div class="h">' + fmtCurto(ciclo) + '</div>' +
+        '<div class="m">' + (m2hc !== null ? nBR(m2hc,2) + ' m²/h corte' : '—') + '</div>' +
+        (m2ht !== null ? '<div class="m">' + nBR(m2ht,2) + ' m²/h ciclo</div>' : '') +
+        '<div class="chev">›</div>' +
+      '</div></div>';
+    }).join('');
+  }
+
+  /* indicadores */
+  const tM2 = feitos.reduce((s,x)=> s + num(x.m2), 0);
+  const tCorte = feitos.reduce((s,x)=> s + acumulado(x,'corte'), 0);
+  const tCiclo = feitos.reduce((s,x)=> s + acumulado(x,'corte') + acumulado(x,'chapa') + acumulado(x,'mesa'), 0);
+  $('sM2').innerHTML  = nBR(tM2,1) + '<span class="u"> m²</span>';
+  $('sH').innerHTML   = nBR(tCiclo/3600000,1) + '<span class="u"> h</span>';
+  $('sM2HC').innerHTML = (tCorte>0 ? nBR(tM2/(tCorte/3600000),2) : '0,00') + '<span class="u"> m²/h</span>';
+  $('sM2HT').innerHTML = (tCiclo>0 ? nBR(tM2/(tCiclo/3600000),2) : '0,00') + '<span class="u"> m²/h</span>';
+  $('sN').textContent = feitos.length;
+  $('sAvulsa').innerHTML = Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>';
+
+  document.querySelectorAll('[data-abrir]').forEach(b => {
+    b.onclick = () => abrirDetalhe(b.getAttribute('data-abrir'));
+  });
+
+  /* guarda o estado dos cronometros no registro aberto */
+  if (r){
+    r.__etapa = etapa; r.__etapaIni = etapaIni;
+    r.__avulsaIni = avulsaIni; r.__pausaIni = pausaIni;
+    r.__espAtual = espAtual; r.__espIni = espIni;
+    salvar();
+  }
+}
+
+/* ================= CATALOGO DE MATERIAIS =================
+   familia > nome > acabamentos. O acabamento e o mesmo material
+   com tratamento diferente, entao os dois entram na mesma familia. */
+const CATALOGO = {
+  'Quartzito': {
+    'Perla Santana': ['Polido'],
+    'Wakanda':       ['Polido']
+  },
+  'Granito': {
+    'Marrom Café':                 ['Polido','Escovado'],
+    'Marrom Piquiri':              ['Polido'],
+    'Ocre':                        ['Polido'],
+    'Preto São Gabriel':           ['Polido','Escovado'],
+    'Basalto':                     ['Polido','Escovado','Levigado'],
+    'Andorinha':                   ['Polido'],
+    'Corumbá':                     ['Polido'],
+    'Corumbazinho':                ['Polido'],
+    'Bordô Chocolate':             ['Polido'],
+    'Verde Panamá':                ['Polido'],
+    'Verde Floresta':              ['Polido'],
+    'Verde Lavras':                ['Polido'],
+    'Verde Candeias':              ['Polido'],
+    'Verde Musgo':                 ['Polido'],
+    'Marrom São Paulo':            ['Polido'],
+    'Branco Dallas':               ['Polido'],
+    'Branco Itaúnas':              ['Polido','Escovado'],
+    'Branco Ceará':                ['Polido','Escovado'],
+    'Preto Vincent Black':         ['Escovado'],
+    'Preto Black Diamond':         ['Polido'],
+    'Preto Absoluto':              ['Polido'],
+    'Marrom Absoluto':             ['Polido'],
+    'Cinza Absoluto':              ['Polido'],
+    'Branco Fortaleza':            ['Polido'],
+    'Branco Nepal':                ['Polido'],
+    'Rosa Raissa':                 ['Polido'],
+    'Amarelo Humaitá':             ['Polido'],
+    'Caju':                        ['Polido'],
+    'Matrix':                      ['Polido','Escovado']
+  },
+  'Mármore': {
+    'Pietra Santa Classic': ['Polido'],
+    'Pietra Santa Gold':    ['Polido'],
+    'Donatello':            ['Polido','Escovado'],
+    'Monte Cristo':         ['Polido','Escovado'],
+    'Biancatto':            ['Polido','Escovado'],
+    'Verde Guatemala':      ['Polido','Escovado'],
+    'Matarazzo':            ['Polido'],
+    'Super White':          ['Polido'],
+    'Branco Paraná':        ['Polido','Escovado']
+  },
+  'Quartzo': {
+    'Branco':           ['Polido'],
+    'Branco Stellar':   ['Polido'],
+    'Cinza Kensho':     ['Polido'],
+    'Calacatta':        ['Polido']
+  }
+};
+
+/* lote: o basalto tem numeracao de lote, entao o nome pode ganhar um sufixo */
+const MAT_LOTE = ['Basalto'];
+
+/* materiais que o usuario acrescentou */
+let CAT_EXTRA = [];
+try { CAT_EXTRA = JSON.parse(localStorage.getItem('corte_catalogo_extra')) || []; } catch(e){ CAT_EXTRA = []; }
+
+function salvarExtra(){ try{ localStorage.setItem('corte_catalogo_extra', JSON.stringify(CAT_EXTRA)); }catch(e){} }
+
+/* devolve o catalogo inteiro: o fixo + os acrescentados */
+function catalogo(){
+  const cat = {};
+  Object.keys(CATALOGO).forEach(f => {
+    cat[f] = {};
+    Object.keys(CATALOGO[f]).forEach(n => { cat[f][n] = CATALOGO[f][n].slice(); });
+  });
+  CAT_EXTRA.forEach(e => {
+    cat[e.familia] = cat[e.familia] || {};
+    cat[e.familia][e.nome] = cat[e.familia][e.nome] || [];
+    if (cat[e.familia][e.nome].indexOf(e.acab) === -1) cat[e.familia][e.nome].push(e.acab);
+  });
+  return cat;
+}
+
+/* nome que fica gravado no registro: "Preto São Gabriel · Polido" */
+function nomeMaterial(nome, acab, lote){
+  let n = nome + (acab ? ' · ' + acab : '');
+  if (lote) n += ' (L' + lote + ')';
+  return n;
+}
+function familiaDoMaterial(txt){
+  const cat = catalogo();
+  for (const f in cat) for (const n in cat[f])
+    if (txt.indexOf(n) === 0) return f;
+  return 'Outro';
+}
+function acabDoMaterial(txt){
+  const p = txt.split(' · ');
+  if (p.length < 2) return '';
+  return p[1].replace(/\s*\(L\d+\)\s*$/, '').trim();
+}
+
+/* ================= DASHBOARD ================= */
+let META_M2H = 1.20;
+try { const m = parseFloat(localStorage.getItem('corte_meta_m2h')); if (m > 0) META_M2H = m; } catch(e){}
+
+const CORES = {corte:'#4A90E2', chapa:'#F2994A', serra:'#E8B84B', mesa:'#9B6BC7', avulsa:'#5BB8C4', pausa:'#E05B5B'};
+const NOMES = {corte:'Cortando', chapa:'Buscar chapa', serra:'Ajustar a serra',
+               mesa:'Tirar peças da mesa', avulsa:'Busca avulsa', pausa:'Pausa comum'};
+const ICONES = {corte:'', chapa:'', serra:'', mesa:'', avulsa:'', pausa:''};
+
+function feitosLista(){
+  return registros.filter(x => x.fim).slice().sort((a,b)=> new Date(a.inicio) - new Date(b.inicio));
+}
+function somaCampo(L,k){ return L.reduce((s,x)=> s + acumulado(x,k), 0); }
+function somaM2(L){ return L.reduce((s,x)=> s + num(x.m2), 0); }
+function diasDistintos(L){
+  const st = {};
+  L.forEach(x => { st[new Date(x.inicio).toDateString()] = 1; });
+  return Object.keys(st).length;
+}
+function dCurta(d){ return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }
+function cicloDe(x){ return acumulado(x,'corte') + acumulado(x,'chapa') + acumulado(x,'serra') + acumulado(x,'mesa'); }
+
+function anel(pct, cor, centro, sub){
+  const r = 32, c = 2*Math.PI*r, p = Math.max(0, Math.min(1, pct || 0));
+  return '<div class="ring"><svg width="80" height="80" viewBox="0 0 80 80">' +
+      '<circle cx="40" cy="40" r="' + r + '" fill="none" stroke="#2A3240" stroke-width="8"/>' +
+      '<circle cx="40" cy="40" r="' + r + '" fill="none" stroke="' + cor + '" stroke-width="8" ' +
+        'stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" ' +
+        'stroke-dashoffset="' + (c*(1-p)).toFixed(1) + '"/>' +
+    '</svg><div class="mid"><b style="color:' + cor + '">' + centro + '</b><small>' + sub + '</small></div></div>';
+}
+
+function barras(itens, cor, corPico){
+  if (!itens.length) return '<div class="empty-d">Sem dados no período.</div>';
+  const max = Math.max.apply(null, itens.map(i => i.v)) || 1;
+  let melhor = -1;
+  itens.forEach((i,ix) => { if (melhor < 0 || i.v > itens[melhor].v) melhor = ix; });
+  return '<div class="bars">' + itens.map((i, ix) =>
+    '<div class="b"><b>' + (i.v ? i.v.toFixed(2).replace('.',',') : '') + '</b>' +
+      '<i style="height:' + Math.max(3, i.v/max*80) + '%;background:' +
+        (ix === melhor ? corPico : cor) + '"></i>' +
+      '<span>' + i.k + '</span></div>').join('') + '</div>';
+}
+
+function tabela(itens, cor, unidade){
+  if (!itens.length) return '<div class="empty-d">Sem dados no período.</div>';
+  const tot = itens.reduce((s,i)=> s + i.v, 0) || 1;
+  const max = Math.max.apply(null, itens.map(i => i.v)) || 1;
+  const dec = itens.slice().sort((a,b)=> b.v - a.v).slice(0, 6);
+  return '<table class="tbl"><tbody>' + dec.map(i =>
+    '<tr><td class="nm">' + esc(i.k) + '</td>' +
+      '<td style="width:60px"><span class="mini" style="width:' + (i.v/max*52) + 'px;background:' + cor + '"></span></td>' +
+      '<td class="v r">' + i.v.toFixed(1).replace('.',',') + '</td>' +
+      '<td class="pc r">' + Math.round(i.v/tot*100) + '%</td></tr>').join('') +
+    '</tbody></table>';
+}
+
+function empilhado(partes){
+  const tot = partes.reduce((s,p)=> s + p.v, 0);
+  if (!tot) return '<div class="empty-d">Sem tempo registrado.</div>';
+  const at = partes.filter(p => p.v > 0).sort((a,b)=> b.v - a.v);
+  return '<div class="stack">' + at.map(p =>
+      '<span style="width:' + (p.v/tot*100) + '%;background:' + CORES[p.k] + '"></span>').join('') +
+    '</div><div class="lgd2">' + at.map(p =>
+      '<div class="row"><span class="sw" style="background:' + CORES[p.k] + '"></span>' +
+      '<span class="nm">' + NOMES[p.k] + '</span>' +
+      '<span class="vl">' + fmtCurto(p.v) + '</span>' +
+      '<span class="pc">' + Math.round(p.v/tot*100) + '%</span></div>').join('') + '</div>';
+}
+
+function renderDashboard(){
+  const L = feitosLista(), box = $('dashBody');
+  if (!L.length){
+    box.innerHTML = '<div class="panel"><div class="empty-d">Nenhum serviço finalizado.<br>' +
+      'Feche o primeiro serviço e o painel aparece aqui.</div></div>';
+    return;
+  }
+
+  const corte = somaCampo(L,'corte'), chapa = somaCampo(L,'chapa'), serra = somaCampo(L,'serra'), mesa = somaCampo(L,'mesa');
+  const pausa = somaCampo(L,'pausa'), avulsa = somaCampo(L,'avulsa');
+  const ciclo = corte + chapa + serra + mesa;
+  /* serviços: os da construção civil têm m², os de arte funerária não.
+     Cada grupo é medido pelo que faz sentido para ele. */
+  const comM2  = L.filter(x => num(x.m2) > 0);
+  const semM2  = L.filter(x => !(num(x.m2) > 0));
+  const m2 = somaM2(L), pecas = L.reduce((s,x)=> s + num(x.pecas), 0);
+  const corteCivil = somaCampo(comM2,'corte');
+  const corteFun   = somaCampo(semM2,'corte');
+  const pecasFun   = semM2.reduce((s,x)=> s + num(x.pecas), 0);
+  /* min por peça: só dos serviços que têm peças contadas */
+  const comPecas = L.filter(x => num(x.pecas) > 0 && acumulado(x,'corte') > 0);
+  const minPorPeca = (() => {
+    const totMs = comPecas.reduce((s,x)=> s + acumulado(x,'corte'), 0);
+    const totP  = comPecas.reduce((s,x)=> s + num(x.pecas), 0);
+    return totP > 0 ? (totMs/60000)/totP : 0;
+  })();
+  const pecasPorHora = (() => {
+    const totMs = comPecas.reduce((s,x)=> s + acumulado(x,'corte'), 0);
+    const totP  = comPecas.reduce((s,x)=> s + num(x.pecas), 0);
+    return totMs > 0 ? totP/(totMs/3600000) : 0;
+  })();
+  const chapas = L.reduce((s,x)=> s + chapasTotal(x), 0);
+  const dias = diasDistintos(L);
+  const m2h = corte > 0 ? m2/(corte/3600000) : 0;
+  const m2hCiclo = ciclo > 0 ? m2/(ciclo/3600000) : 0;
+  const retrab = L.filter(x => acumulado(x,'pausa') > 0 && /refe|riscad|ajuste|corrig/i.test(x.obs||'')).length;
+
+  /* por semana — chave iso da segunda-feira */
+  const sem = {};
+  L.forEach(x => {
+    const d = new Date(x.inicio);
+    const seg = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
+    const k = seg.toISOString().slice(0,10);
+    sem[k] = sem[k] || {m2:0, corte:0, n:0, seg:seg, fim:new Date(seg)};
+    sem[k].m2 += num(x.m2); sem[k].corte += acumulado(x,'corte'); sem[k].n++;
+    const f = new Date(d); if (f > sem[k].fim) sem[k].fim = f;
+  });
+  const ks = Object.keys(sem).sort();
+  const itSemM2 = ks.map(k => ({ k: dCurta(new Date(k)), v: sem[k].m2 }));
+  const itSemM2H = ks.map(k => ({ k: dCurta(new Date(k)),
+    v: sem[k].corte > 0 ? sem[k].m2/(sem[k].corte/3600000) : 0 }));
+
+  /* tipo e material */
+  const porTipo = {}, porMat = {};
+  L.forEach(x => {
+    porTipo[x.tipo] = (porTipo[x.tipo]||0) + num(x.m2);
+    porMat[x.mat]   = (porMat[x.mat]||0) + num(x.m2);
+  });
+  const itTipo = Object.keys(porTipo).map(k => ({k:k, v:porTipo[k]}));
+  const itMat  = Object.keys(porMat).map(k => ({k:k, v:porMat[k]}));
+
+  /* periodo */
+  const inicioP = new Date(L[0].inicio), fimP = new Date(L[L.length-1].fim);
+
+  const pctMeta = META_M2H > 0 ? m2h/META_M2H : 0;
+  const corAnel = pctMeta >= 1 ? '#43C08B' : pctMeta >= 0.75 ? '#F2994A' : '#E05B5B';
+
+  let h = '<div class="dwrap">';
+
+  /* ---- cabecalho do relatorio ---- */
+  h += '<div class="sec"><div class="panel" style="padding:13px 14px">' +
+    '<div style="font-size:14.5px;font-weight:700;letter-spacing:-.2px">Relatório de produção — setor de corte</div>' +
+    '<div style="font-size:11.5px;color:var(--sub);margin-top:4px">' +
+      dCurta(inicioP) + '/' + inicioP.getFullYear() + ' a ' + dCurta(fimP) + '/' + fimP.getFullYear() +
+      ' &nbsp;·&nbsp; ' + dias + ' dias de trabalho &nbsp;·&nbsp; ' + L.length + ' serviços</div>' +
+  '</div></div>';
+
+  /* ---- destaque: m²/h quando há metragem, min por peça quando não há ---- */
+  const usaM2 = comM2.length > 0;
+  if (usaM2){
+    h += '<div class="sec"><div class="hero-kpi">' +
+        anel(pctMeta, corAnel, Math.round(pctMeta*100) + '%', 'da meta') +
+        '<div class="hk-l"><div class="lb">Produtividade na serra</div>' +
+          '<div class="nm">' + nBR(m2h,2) + ' <span style="font-size:15px;letter-spacing:0">m²/h</span></div>' +
+          '<div class="un">meta ' + nBR(META_M2H,2) + ' m²/h &nbsp;·&nbsp; ciclo completo ' + nBR(m2hCiclo,2) + ' m²/h</div>' +
+          '<div class="df">' + (m2h >= META_M2H
+              ? 'Acima da meta em ' + nBR(m2h - META_M2H,2) + ' m²/h além do previsto'
+              : 'Abaixo da meta em ' + nBR(META_M2H - m2h,2) + ' m²/h para a meta') +
+            (semM2.length ? '<br>' + semM2.length + ' serviço(s) de arte funerária ficam fora ' +
+              'deste número: não têm metragem lançada.' : '') + '</div>' +
+        '</div></div></div>';
+  } else {
+    h += '<div class="sec"><div class="hero-kpi">' +
+        '<div class="hk-l"><div class="lb">Ritmo na serra</div>' +
+          '<div class="nm">' + nBR(minPorPeca,1) + ' <span style="font-size:15px;letter-spacing:0">min/peça</span></div>' +
+          '<div class="un">' + nBR(pecasPorHora,1) + ' peças por hora de serra</div>' +
+          '<div class="df">Período medido por peças e tempo, sem metragem — ' +
+            'é assim que a arte funerária é lançada.</div>' +
+        '</div></div></div>';
+  }
+
+  /* ---- indicadores ---- */
+  h += '<div class="sec"><div class="kpi-grid">' +
+    '<div class="kpi"><div class="k">peças</div><div class="v">' + pecas + '</div></div>' +
+    '<div class="kpi"><div class="k">chapas</div><div class="v">' + nBR(chapas,1) + '</div></div>' +
+    '<div class="kpi"><div class="k">horas na serra</div><div class="v">' + nBR(corte/3600000,1) + '<small> h</small></div></div>' +
+    (usaM2 ? '<div class="kpi"><div class="k">m² cortados</div><div class="v">' + nBR(m2,1) + '</div></div>' : '') +
+    (minPorPeca ? '<div class="kpi"><div class="k">min por peça</div><div class="v">' + nBR(minPorPeca,1) + '</div></div>' : '') +
+    '<div class="kpi"><div class="k">peças por hora</div><div class="v">' + nBR(pecasPorHora,1) + '</div></div>' +
+    '<div class="kpi"><div class="k">serviços</div><div class="v">' + L.length + '</div></div>' +
+    '<div class="kpi"><div class="k">dias de trabalho</div><div class="v">' + dias + '</div></div>' +
+  '</div></div>';
+
+  /* ---- producao por semana ---- */
+  h += '<div class="sec"><div class="sec-t">Volume por semana (m²)</div>' +
+    '<div class="panel tight">' + barras(itSemM2, '#4A90E2', '#43C08B') + '</div></div>';
+
+  if (itSemM2H.length > 1){
+    h += '<div class="sec"><div class="sec-t">Produtividade por semana (m²/h)</div>' +
+      '<div class="panel tight">' + barras(itSemM2H, '#9B6BC7', '#43C08B') + '</div></div>';
+  }
+
+  /* ---- onde vai o tempo ---- */
+  h += '<div class="sec"><div class="sec-t">Distribuição do tempo</div>' +
+    '<div class="panel tight">' + empilhado([
+      {k:'corte', v:corte}, {k:'chapa', v:chapa}, {k:'serra', v:serra}, {k:'mesa', v:mesa},
+      {k:'avulsa', v:avulsa}, {k:'pausa', v:pausa}
+    ]) + '</div></div>';
+
+  /* ---- por familia de material ---- */
+  const porFam = {};
+  L.forEach(x => {
+    const f = x.fam || familiaDoMaterial(x.mat || '');
+    porFam[f] = porFam[f] || {m2:0, corte:0, n:0, chapas:0};
+    porFam[f].m2 += num(x.m2);
+    porFam[f].corte += acumulado(x,'corte');
+    porFam[f].n++;
+    porFam[f].chapas += chapasTotal(x);
+  });
+  const itFam = Object.keys(porFam).map(k => ({k:k, v:porFam[k].m2}));
+
+  /* ---- desempenho por material (nome + acabamento) ---- */
+  const porM = {};
+  L.forEach(x => {
+    const nome = (x.mat || 'sem material').split(' · ')[0];
+    porM[nome] = porM[nome] || {m2:0, corte:0, n:0, pecas:0, chapas:0};
+    porM[nome].m2 += num(x.m2);
+    porM[nome].corte += acumulado(x,'corte');
+    porM[nome].pecas += num(x.pecas);
+    porM[nome].chapas += chapasTotal(x);
+    porM[nome].n++;
+  });
+  const listaM = Object.keys(porM).map(k => ({
+    k:k, v:porM[k].m2, corte:porM[k].corte, n:porM[k].n,
+    pecas:porM[k].pecas, chapas:porM[k].chapas,
+    m2h: porM[k].corte > 0 ? porM[k].m2/(porM[k].corte/3600000) : 0
+  }));
+  listaM.sort((a,b)=> b.v - a.v);
+
+  /* so materiais com tempo de corte registrado entram no ranking de produtividade */
+  const ranking = listaM.filter(m => m.corte > 0).slice().sort((a,b)=> b.m2h - a.m2h);
+  const melhorMat = ranking[0], piorMat = ranking[ranking.length-1];
+  const totM = listaM.reduce((s,m)=> s + m.v, 0) || 1;
+
+  /* ---- por espessura ---- */
+  const porEsp = {};
+  L.forEach(x => {
+    const listas = x.pecasEsp || [];
+    const lotes = x.lotes || [];
+    /* tempo por espessura: usa os lotes quando existirem, senao divide pelo nº de pecas */
+    const totalPecasX = totalPecas(listas);
+    listas.forEach(p => {
+      const esp = p.cm;
+      porEsp[esp] = porEsp[esp] || { pecas:0, ms:0, servicos:0, m2:0, cm:esp };
+      porEsp[esp].pecas += p.n;
+      porEsp[esp].servicos++;
+    });
+    lotes.forEach(l => { if (porEsp[l.cm]) porEsp[l.cm].ms += l.ms; });
+    /* m2 rateado entre as espessuras do serviço, proporcional ao nº de peças */
+    if (totalPecasX > 0){
+      listas.forEach(p => { porEsp[p.cm].m2 += (num(x.m2) * p.n / totalPecasX); });
+    }
+  });
+
+  const listaEsp = Object.keys(porEsp).map(k => {
+    const e = porEsp[k];
+    const passadas = (ESPESSURAS.find(x => x.cm === e.cm) || {}).passadas || 1;
+    return {
+      cm: e.cm, pecas: e.pecas, ms: e.ms, servicos: e.servicos, m2: e.m2, passadas: passadas,
+      minPorPeca: e.pecas > 0 ? (e.ms/60000)/e.pecas : 0,
+      m2h: e.ms > 0 ? e.m2/(e.ms/3600000) : 0,
+      pecasPorHora: e.ms > 0 ? e.pecas/(e.ms/3600000) : 0
+    };
+  }).sort((a,b)=> a.cm - b.cm);
+
+  const totEspPecas = listaEsp.reduce((s,e)=> s + e.pecas, 0);
+  const totEspMs = listaEsp.reduce((s,e)=> s + e.ms, 0);
+
+  if (listaEsp.length){
+    const corDe = (cm) => (cm <= 3 ? '#5B9BF3' : cm <= 5 ? '#F5A15C' : '#F07070');
+    const maxMs = Math.max.apply(null, listaEsp.map(e => e.ms)) || 1;
+    const maisPesada = listaEsp.slice().sort((a,b)=> b.minPorPeca - a.minPorPeca)[0];
+
+    h += '<div class="sec"><div class="sec-t">Esforço por espessura</div>' +
+      '<div class="panel tight">' +
+        '<div style="font-size:12px;color:var(--sub);line-height:1.55;margin-bottom:12px">' +
+          'A espessura mais lenta é <b style="color:var(--txt)">' + maisPesada.cm + ' cm</b>, ' +
+          'com ' + nBR(maisPesada.minPorPeca,1) + ' min por peça' +
+          (totEspMs > 0 ? ' — ' + nBR(maisPesada.ms/totEspMs*100,0) + '% do tempo de serra em ' +
+             nBR(maisPesada.pecas/totEspPecas*100,0) + '% das peças.' : '.') +
+        '</div>' +
+        '<div class="esp-list">' + listaEsp.map(e =>
+          '<div class="ex">' +
+            '<div class="top">' +
+              '<span class="cm">' + e.cm + ' cm' +
+                '<small>' + e.passadas + ' passada' + (e.passadas>1?'s':'') + '</small></span>' +
+              '<span class="pc" style="color:' + corDe(e.cm) + '">' +
+                (e.minPorPeca ? nBR(e.minPorPeca,1) : '—') +
+                '<small> min/peça</small></span>' +
+            '</div>' +
+            '<div class="bar"><span style="width:' + (e.ms/maxMs*100) + '%;background:' +
+              corDe(e.cm) + '"></span></div>' +
+            '<div class="foot">' +
+              '<span>' + e.pecas + ' peça(s) · ' + e.servicos + ' serviço(s)</span>' +
+              '<span><b>' + fmtCurto(e.ms) + '</b> de serra</span>' +
+            '</div>' +
+          '</div>').join('') +
+        '</div>' +
+      '</div></div>';
+  }
+
+  h += '<div class="sec"><div class="sec-t">Materiais</div>' +
+    '<div class="fam-tabs" id="famTabs"></div>' +
+    '<div class="mt-list" id="mtList"></div>' +
+    '<div style="font-size:11px;color:#5A6472;margin-top:10px;text-align:center">' +
+      'Selecione um material para ver os detalhes.</div></div>';
+
+  /* ---- tipo de peça: esforço real, min por peça ---- */
+  const porTipoD = {};
+  L.forEach(x => {
+    const t = x.tipo || 'Outro';
+    porTipoD[t] = porTipoD[t] || { pecas:0, ms:0, m2:0, servicos:0 };
+    porTipoD[t].pecas += num(x.pecas);
+    porTipoD[t].ms += acumulado(x,'corte');
+    porTipoD[t].m2 += num(x.m2);
+    porTipoD[t].servicos++;
+  });
+  const listaT = Object.keys(porTipoD).map(k => {
+    const t = porTipoD[k];
+    return {
+      k:k, m2:t.m2, pecas:t.pecas, servicos:t.servicos, ms:t.ms,
+      minPorPeca: t.pecas > 0 ? (t.ms/60000)/t.pecas : 0,
+      pecasPorHora: t.ms > 0 ? t.pecas/(t.ms/3600000) : 0
+    };
+  }).sort((a,b)=> b.minPorPeca - a.minPorPeca);
+
+  if (listaT.length){
+    const maxMin = Math.max.apply(null, listaT.map(t => t.minPorPeca)) || 1;
+    const pesado = listaT[0], leve = listaT[listaT.length-1];
+    h += '<div class="sec"><div class="sec-t">Esforço por tipo de peça</div>' +
+      '<div class="panel tight" style="padding:0;overflow:hidden">' +
+      '<table class="tbl"><thead><tr>' +
+        '<th>Tipo</th><th class="r">pçs</th><th class="r">min/peça</th>' +
+        '<th class="r">pçs/hora</th>' +
+      '</tr></thead><tbody>' +
+      listaT.map(t =>
+        '<tr><td class="nm">' + esc(t.k) + '</td>' +
+          '<td class="r" style="color:var(--sub)">' + t.pecas + '</td>' +
+          '<td class="v r">' + (t.minPorPeca ? nBR(t.minPorPeca,1) : '—') + '</td>' +
+          '<td class="r" style="color:var(--sub)">' + (t.pecasPorHora ? nBR(t.pecasPorHora,1) : '—') + '</td>' +
+        '</tr>').join('') +
+      '</tbody></table></div>';
+
+    if (pesado.k !== leve.k && pesado.minPorPeca > 0 && leve.minPorPeca > 0){
+      h += '<div class="panel tight" style="margin-top:8px">' +
+        '<div style="font-size:12px;color:var(--sub);line-height:1.55">' +
+          '<b style="color:#F07070">' + esc(pesado.k) + '</b> é o mais lento: ' +
+          nBR(pesado.minPorPeca,1) + ' min de serra por peça. ' +
+          '<b style="color:#3DD68C">' + esc(leve.k) + '</b> é o mais rápido: ' +
+          nBR(leve.minPorPeca,1) + ' min por peça.<br>' +
+          '<span style="color:#5A6472">Diferença de ' +
+            nBR(pesado.minPorPeca/leve.minPorPeca,1) + '× no tempo por peça — ' +
+            'é a natureza do serviço, não o ritmo.</span>' +
+        '</div></div>';
+    }
+    h += '</div>';
+  }
+
+  /* ---- volume por tipo de peça (m², só quando houver) ---- */
+  if (usaM2){
+    h += '<div class="sec"><div class="sec-t">Volume por tipo de peça (m²)</div>' +
+      '<div class="panel tight">' + tabela(itTipo, '#4A90E2') + '</div></div>';
+  }
+
+    /* ---- metas ---- */
+  h += '<div class="sec"><div class="sec-t">Meta</div><div class="panel tight">' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+      '<input id="metaIn" type="number" inputmode="decimal" step="0.05" min="0.1" value="' +
+        nBR(META_M2H,2).replace(',','.') + '" style="flex:1">' +
+      '<button type="button" class="btn-mid" id="metaSalvar" style="width:auto;padding:12px 18px">Salvar</button>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--sub);margin-top:8px">Meta de m² por hora de corte. ' +
+      'O anel, a barra verde e o comparativo acima seguem este valor.</div>' +
+  '</div></div>';
+
+  h += '</div>';
+  box.innerHTML = h;
+
+  filtrarMateriais(listaM, itFam, 'Todos');
+
+  $('metaSalvar').onclick = () => {
+    const v = num($('metaIn').value);
+    if (v > 0){ META_M2H = v; try{ localStorage.setItem('corte_meta_m2h', String(v)); }catch(e){} renderDashboard(); }
+  };
+}
+
+/* ---------- navegacao entre as abas ---------- */
+function irPara(qual){
+  const app = qual === 'app';
+  $('viewApp').style.display = app ? 'block' : 'none';
+  $('viewDash').style.display = app ? 'none' : 'block';
+  $('tabApp').classList.toggle('on', app);
+  $('tabDash').classList.toggle('on', !app);
+  if (!app) renderDashboard();
+  window.scrollTo(0,0);
+}
+$('tabApp').onclick = () => irPara('app');
+$('tabDash').onclick = () => irPara('dash');
+
+/* ========== ESTATISTICAS POR MATERIAL ==========
+   Lista filtravel + pop-up completo por material. */
+let LISTA_M = [], FAMS_M = [], FILTRO_M = 'Todos', FILTRO_FAM = 'Todos';
+
+function corNota(m2h){
+  if (!m2h) return '#5C6675';
+  if (m2h >= META_M2H) return '#43C08B';
+  if (m2h >= META_M2H*0.8) return '#F2994A';
+  return '#E05B5B';
+}
+
+function filtrarMateriais(listaM, itFam, fam){
+  LISTA_M = listaM; FAMS_M = itFam; FILTRO_FAM = fam || 'Todos';
+  desenharMateriais();
+}
+
+function desenharMateriais(){
+  const tabs = $('famTabs'), cont = $('mtList');
+  if (!tabs || !cont) return;
+
+  /* abas de familia */
+  const nomes = FAMS_M.slice().sort((a,b)=> b.v - a.v).map(f => f.k);
+  tabs.innerHTML = ['Todos'].concat(nomes).map(f =>
+    '<button type="button" class="ft ' + (f === FILTRO_FAM ? 'on' : '') + '" data-fam="' +
+      esc(f) + '">' + esc(f) + '</button>').join('');
+  tabs.querySelectorAll('[data-fam]').forEach(b => {
+    b.onclick = () => { FILTRO_FAM = b.getAttribute('data-fam'); desenharMateriais(); };
+  });
+
+  /* lista filtrada */
+  const cat = catalogo();
+  const pertence = (nome) => {
+    if (FILTRO_FAM === 'Todos') return true;
+    for (const f in cat) if (f === FILTRO_FAM && cat[f][nome]) return true;
+    return false;
+  };
+  let itens = LISTA_M.filter(m => pertence(m.k));
+  itens = itens.slice().sort((a,b)=> b.v - a.v);
+
+  if (!itens.length){
+    cont.innerHTML = '<div class="panel tight"><div class="empty-d">Nenhum material desta família nos registros.</div></div>';
+    return;
+  }
+
+  const max = Math.max.apply(null, itens.map(i => i.v)) || 1;
+  cont.innerHTML = itens.map(m => {
+    const cor = corNota(m.m2h);
+    return '<div class="mt" data-mat="' + esc(m.k) + '">' +
+      '<div class="top">' +
+        '<span class="dot" style="background:' + cor + '"></span>' +
+        '<span class="nm">' + esc(m.k) + '</span>' +
+        '<span class="m2">' + nBR(m.v,1) + ' <small>m²</small></span>' +
+      '</div>' +
+      '<div class="bar"><span style="width:' + (m.v/max*100) + '%;background:' + cor + '"></span></div>' +
+      '<div class="foot">' +
+        '<span>' + m.n + ' serviço(s) · ' + m.pecas + ' peça(s)</span>' +
+        '<span><b>' + (m.m2h ? nBR(m.m2h,2) : '—') + '</b> m²/h</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  cont.querySelectorAll('[data-mat]').forEach(el => {
+    el.onclick = () => abrirMaterial(el.getAttribute('data-mat'));
+  });
+}
+
+/* ---------- pop-up completo de um material ---------- */
+function abrirMaterial(nome){
+  const L = feitosLista().filter(x => (x.mat || '').split(' · ')[0] === nome);
+  if (!L.length) return;
+
+  const m2 = somaM2(L);
+  const corte = somaCampo(L,'corte'), chapa = somaCampo(L,'chapa'), serra = somaCampo(L,'serra'), mesa = somaCampo(L,'mesa');
+  const pausa = somaCampo(L,'pausa'), avulsa = somaCampo(L,'avulsa');
+  const ciclo = corte + chapa + serra + mesa;
+  const pecas = L.reduce((s,x)=> s + num(x.pecas), 0);
+  const chs = L.reduce((s,x)=> s + chapasTotal(x), 0);
+  const m2h = corte > 0 ? m2/(corte/3600000) : 0;
+  const m2hCiclo = ciclo > 0 ? m2/(ciclo/3600000) : 0;
+  const fam = L[0].fam || familiaDoMaterial(nome);
+
+  /* acabamentos usados */
+  const acabs = {};
+  L.forEach(x => {
+    const a = acabDoMaterial(x.mat || '') || '—';
+    acabs[a] = acabs[a] || {m2:0, corte:0, n:0};
+    acabs[a].m2 += num(x.m2); acabs[a].corte += acumulado(x,'corte'); acabs[a].n++;
+  });
+
+  /* tipos de peca feitos nesse material */
+  const tipos = {};
+  L.forEach(x => { tipos[x.tipo] = (tipos[x.tipo]||0) + num(x.m2); });
+
+  /* por semana */
+  const sem = {};
+  L.forEach(x => {
+    const d = new Date(x.inicio);
+    const seg = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
+    const k = seg.toISOString().slice(0,10);
+    sem[k] = sem[k] || {m2:0, corte:0};
+    sem[k].m2 += num(x.m2); sem[k].corte += acumulado(x,'corte');
+  });
+  const ks = Object.keys(sem).sort();
+  const maxSem = Math.max.apply(null, ks.map(k => sem[k].m2)) || 1;
+
+  /* posicao no ranking geral */
+  const todosM = {};
+  feitosLista().forEach(x => {
+    const n = (x.mat || '').split(' · ')[0];
+    todosM[n] = todosM[n] || {m2:0, corte:0};
+    todosM[n].m2 += num(x.m2); todosM[n].corte += acumulado(x,'corte');
+  });
+  const rank = Object.keys(todosM).map(k => ({
+    k:k, v:todosM[k].m2, m2h: todosM[k].corte > 0 ? todosM[k].m2/(todosM[k].corte/3600000) : 0
+  })).sort((a,b)=> b.m2h - a.m2h);
+  const pos = rank.findIndex(r => r.k === nome) + 1;
+  const totGeral = rank.reduce((s,r)=> s + r.v, 0) || 1;
+
+  const cor = corNota(m2h);
+  const velMedia = L.filter(x => num(x.vel) > 0);
+  const vel = velMedia.length ? velMedia.reduce((s,x)=> s + num(x.vel), 0)/velMedia.length : 0;
+
+  let h = '';
+  h += '<div class="sh-top"><div style="min-width:0">' +
+    '<div class="sh-proj">' + esc(nome) + '</div>' +
+    '<div class="sh-sub">' + esc(fam) + ' &nbsp;·&nbsp; ' + L.length + ' serviço(s) &nbsp;·&nbsp; ' +
+      nBR(m2/totGeral*100,0) + '% do volume total</div>' +
+    '<div class="pills">' +
+      (pos <= 3 ? '<span class="pill" style="color:#43C08B">' + pos + 'º mais produtivo</span>'
+                : '<span class="pill">' + pos + 'º no ranking de ritmo</span>') +
+      (vel ? '<span class="pill">avanço médio ' + nBR(vel,1) + ' m/min</span>' : '') +
+    '</div></div>' +
+    '<button type="button" class="xbtn" id="mClose">Fechar</button></div>';
+
+  h += '<div class="big-kpi">' +
+    '<div class="bk"><div class="k">m² cortados</div><div class="v">' + nBR(m2,1) +
+      '<small> m²</small></div><div class="sub2">' + nBR(m2/L.length,1) + ' m² por serviço</div></div>' +
+    '<div class="bk"><div class="k">Produtividade</div><div class="v" style="color:' + cor + '">' +
+      (m2h ? nBR(m2h,2) : '—') + '<small> m²/h</small></div>' +
+      '<div class="sub2">' + (m2hCiclo ? nBR(m2hCiclo,2) + ' m²/h no ciclo' : 'sem ciclo') + '</div></div>' +
+    '<div class="bk"><div class="k">Horas na serra</div><div class="v">' + nBR(corte/3600000,1) +
+      '<small> h</small></div><div class="sub2">' + fmtCurto(chapa) + ' buscando chapa</div></div>' +
+    '<div class="bk"><div class="k">Peças / chapas</div><div class="v">' + pecas + '<small> pç</small></div>' +
+      '<div class="sub2">' + nBR(chs,1) + ' chapas · ' +
+      (chs > 0 ? nBR(m2/chs,2) + ' m² por chapa' : '—') + '</div></div>' +
+  '</div>';
+
+  /* desempenho vs meta */
+  const pct = META_M2H > 0 ? m2h/META_M2H : 0;
+  h += '<div class="sh-h">Comparação com a meta</div>' +
+    '<div style="display:flex;align-items:center;gap:14px">' +
+      anel(pct, cor, Math.round(pct*100) + '%', 'da meta') +
+      '<div style="flex:1;font-size:12.5px;line-height:1.55;color:var(--sub)">' +
+        (m2h >= META_M2H
+          ? 'Este material rende <b style="color:#43C08B">' + nBR(m2h - META_M2H,2) +
+            ' m²/h acima</b> da meta de ' + nBR(META_M2H,2) + ' m²/h.'
+          : 'Este material rende <b style="color:' + cor + '">' + nBR(META_M2H - m2h,2) +
+            ' m²/h abaixo</b> da meta de ' + nBR(META_M2H,2) + ' m²/h.') +
+        '<br><span style="color:#5C6675">Referência de ritmo entre todos os materiais: ' +
+          (rank[0] ? esc(rank[0].k) + ' a ' + nBR(rank[0].m2h,2) + ' m²/h' : '—') + '.</span>' +
+      '</div>' +
+    '</div>';
+
+  /* por semana */
+  if (ks.length > 1){
+    h += '<div class="sh-h">m² por semana</div>' +
+      '<div class="spark">' + ks.map(k =>
+        '<div class="s" style="height:' + Math.max(3, sem[k].m2/maxSem*100) + '%;background:' + cor +
+        '" title="' + dCurta(new Date(k)) + '"></div>').join('') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--sub);margin-top:5px">' +
+        '<span>' + dCurta(new Date(ks[0])) + '</span><span>' + dCurta(new Date(ks[ks.length-1])) + '</span></div>';
+  }
+
+  /* acabamentos */
+  const nomesAc = Object.keys(acabs);
+  if (nomesAc.length > 1){
+    h += '<div class="sh-h">Polido x escovado</div><div class="panel tight" style="padding:11px">' +
+      '<div class="lista-rows">' + nomesAc.map(a => {
+        const d = acabs[a];
+        const r = d.corte > 0 ? d.m2/(d.corte/3600000) : 0;
+        return '<div class="row"><span class="a">' + esc(a) + ' · ' + d.n + ' serviço(s)</span>' +
+          '<span class="b">' + nBR(d.m2,1) + ' m² · ' + (r ? nBR(r,2) + ' m²/h' : '—') + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  /* tipos de peca nesse material */
+  h += '<div class="sh-h">Peças cortadas neste material</div><div class="panel tight" style="padding:11px">' +
+    '<div class="lista-rows">' + Object.keys(tipos).sort((a,b)=> tipos[b]-tipos[a]).map(t =>
+      '<div class="row"><span class="a">' + esc(t) + '</span><span class="b">' +
+      nBR(tipos[t],1) + ' m²</span></div>').join('') + '</div></div>';
+
+  /* distribuicao do tempo */
+  h += '<div class="sh-h">Distribuição do tempo</div>' +
+    '<div class="panel tight" style="padding:11px">' + empilhado([
+      {k:'corte', v:corte}, {k:'chapa', v:chapa}, {k:'serra', v:serra}, {k:'mesa', v:mesa},
+      {k:'avulsa', v:avulsa}, {k:'pausa', v:pausa}
+    ]) + '</div>';
+
+  /* comparativo com outros materiais */
+  const viz = rank.filter(r => r.k !== nome && r.v > 0).slice(0, 3);
+  if (viz.length){
+    h += '<div class="sh-h">Comparativo com outros materiais</div>' +
+      '<div class="panel tight" style="padding:11px"><div class="lista-rows">' +
+      rank.slice(0, 5).map(r =>
+        '<div class="row"><span class="a" style="color:' + (r.k === nome ? 'var(--txt)' : 'var(--sub)') +
+          ';font-weight:' + (r.k === nome ? '700' : '400') + '">' + esc(r.k) + '</span>' +
+        '<span class="b" style="color:' + corNota(r.m2h) + '">' +
+          (r.m2h ? nBR(r.m2h,2) : '—') + ' m²/h</span></div>').join('') +
+      '</div></div>';
+  }
+
+  /* leitura automatica */
+  const maisLongo = L.slice().sort((a,b)=> acumulado(b,'corte') - acumulado(a,'corte'))[0];
+  h += '<div class="acao">' +
+    '<b>Resumo:</b> ' + esc(nome) + ' representa ' +
+    nBR(m2/totGeral*100,0) + '% de tudo que você cortou, com ritmo de ' +
+    (m2h ? nBR(m2h,2) : '—') + ' m²/h.' +
+    (pos === 1 ? ' É o material com maior rendimento por hora.' :
+     pos === rank.length ? ' É o material com maior tempo por m².' :
+     ' Fica em ' + pos + 'º lugar entre ' + rank.length + ' materiais no seu ritmo.' ) +
+    ' O serviço mais longo foi o ' + esc(maisLongo.proj) + ', com ' +
+    fmtCurto(acumulado(maisLongo,'corte')) + ' de serra.' +
+    '</div>';
+
+  h += '<div class="sh-btns"><button type="button" class="btn-mid" id="mFechar">Fechar</button></div>';
+
+  $('sheetBody').innerHTML = h;
+  $('ov').classList.add('on');
+  $('ov').scrollTop = 0;
+  $('mClose').onclick = fecharDetalhe;
+  $('mFechar').onclick = fecharDetalhe;
+}
+
+/* ---------- modal de detalhes do servico ---------- */
+function abrirDetalhe(id){
+  const x = registros.find(r => r.id === id);
+  if (!x) return;
+
+  const partes = ['corte','chapa','serra','mesa','avulsa','pausa'].map(k => ({k:k, ms:acumulado(x,k)}));
+  const ciclo = partes.filter(p => p.k !== 'avulsa' && p.k !== 'pausa').reduce((s,p)=> s + p.ms, 0);
+  const somaBarra = partes.reduce((s,p)=> s + p.ms, 0) || 1;
+  const dec = partes.filter(p => p.ms > 0).sort((a,b)=> b.ms - a.ms);
+
+  let h = '';
+  h += '<div class="sh-top">' +
+         '<div><div class="sh-proj">' + esc(x.proj) + '</div>' +
+         '<div class="sh-sub">' + esc(x.tipo) + ' · ' + esc(x.mat) + '<br>' +
+           fmtData(x.inicio) + ' → ' + fmtData(x.fim) + '</div></div>' +
+         '<button type="button" class="xbtn" id="xClose">Fechar</button>' +
+       '</div>';
+
+  const m2hc = (x.m2 > 0 && acumulado(x,'corte') > 0) ? x.m2/(acumulado(x,'corte')/3600000) : null;
+  h += '<div class="big">' +
+         '<div><div class="k">m² do projeto</div><div class="v">' + (x.m2 ? nBR(x.m2,2) : '—') +
+           '<small>m²</small></div></div>' +
+         '<div><div class="k">Ciclo completo</div><div class="v">' + fmtCurto(ciclo) + '</div></div>' +
+         '<div><div class="k">m²/hora corte</div><div class="v">' +
+           (m2hc !== null ? nBR(m2hc,2) : '—') + '<small>m²/h</small></div></div>' +
+       '</div>';
+
+  // barra proporcional
+  h += '<div class="sh-h">Distribuição do tempo</div>' +
+       '<div class="bar">' + partes.filter(p => p.ms > 0).map(p =>
+         '<span style="width:' + (p.ms/somaBarra*100) + '%;background:' + CORES[p.k] + '"></span>'
+       ).join('') + '</div>' +
+       '<div class="lgd">' + dec.map(p =>
+         '<div><span class="sw" style="background:' + CORES[p.k] + '"></span>' +
+         '<span class="nm">' + ICONES[p.k] + ' ' + NOMES[p.k] + '</span>' +
+         '<span class="vl">' + fmtCurto(p.ms) + '</span>' +
+         '<span class="pc">' + Math.round(p.ms/somaBarra*100) + '%</span></div>'
+       ).join('') + '</div>';
+
+  // detalhes
+  h += '<div class="sh-h">Detalhes</div>';
+  const linha = (k,v) => '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>';
+  h += linha('Peças', x.pecas ? x.pecas : '—');
+  h += linha('Chapas usadas', chapasTotal(x) ? nBR(chapasTotal(x),1) : '—');
+  if (chapasDe(x,'chapa') || chapasDe(x,'avulsa')){
+    h += linha('· deste projeto', nBR(chapasDe(x,'chapa'),1));
+    h += linha('· busca avulsa', nBR(chapasDe(x,'avulsa'),1));
+  }
+  if (x.vel) h += linha('Velocidade de avanço', nBR(x.vel,1) + ' m/min');
+  const m2ht = (x.m2 > 0 && ciclo > 0) ? x.m2/(ciclo/3600000) : null;
+  if (m2ht !== null) h += linha('m²/h ciclo completo', nBR(m2ht,2));
+  const pausaMs = acumulado(x,'pausa');
+  if (pausaMs) h += linha('Em pausa', fmtCurto(pausaMs));
+
+  if (x.obs) h += '<div class="sh-note">' + esc(x.obs) + '</div>';
+
+  h += '<div class="sh-btns">' +
+         '<button type="button" class="btn-ghost" id="xApagar">Apagar</button>' +
+         '<button type="button" class="btn-mid" id="xEditar">Editar dados</button>' +
+         '<button type="button" class="btn-mid" id="xFechar">Fechar</button>' +
+       '</div>';
+
+  $('sheetBody').innerHTML = h;
+  $('ov').classList.add('on');
+  $('ov').scrollTop = 0;
+
+  $('xClose').onclick = fecharDetalhe;
+  $('xFechar').onclick = fecharDetalhe;
+  $('xEditar').onclick = () => abrirEdicao(id);
+  $('xApagar').onclick = () => {
+    if (confirm('Apagar este registro?')){
+      registros = registros.filter(r => r.id !== id);
+      salvar(); fecharDetalhe(); render();
+    }
+  };
+}
+/* ---------- editar os dados de um serviço já finalizado ----------
+   Os tempos cronometrados não são tocados: só o que foi digitado. */
+function abrirEdicao(id){
+  const x = registros.find(r => r.id === id);
+  if (!x) return;
+  const fun = (x.categoria === 'funeraria');
+
+  let h = '<div class="sh-top"><div><div class="sh-proj">Editar dados</div>' +
+    '<div class="sh-sub">' + esc(x.proj) + '<br>Os tempos cronometrados não mudam.</div></div>' +
+    '<button type="button" class="xbtn" id="eClose">✕</button></div>';
+
+  h += '<div class="card" style="margin-top:16px">';
+  h += '<label for="eProj">Nº do projeto</label>' +
+       '<input id="eProj" value="' + esc(x.proj) + '">';
+
+  h += '<label for="eTipo">Tipo de peça</label><select id="eTipo">' +
+    ['Bancada','Escada','Ilha','Lavatório','Nicho','Rodapé','Mesa','Soleira','Aparador','Peitoril','Tampo','Túmulo','Outro']
+      .map(t => '<option' + (t === x.tipo ? ' selected' : '') + '>' + t + '</option>').join('') +
+    '</select>';
+
+  h += '<label>Categoria</label><div class="seg">' +
+       '<button type="button" class="sg ' + (!fun ? 'on' : '') + '" data-ecat="civil">Construção civil</button>' +
+       '<button type="button" class="sg ' + (fun ? 'on' : '') + '" data-ecat="funeraria">Arte funerária</button>' +
+       '</div>';
+
+  h += '<div id="eM2Wrap" style="' + (fun ? 'display:none' : '') + '">' +
+       '<label for="eM2">m² totais do projeto</label>' +
+       '<input id="eM2" type="number" inputmode="decimal" step="0.01" min="0" value="' +
+         (x.m2 ? nBR(x.m2,2).replace(',','.') : '') + '">' +
+       '<div class="hint">Na arte funerária o m² não é usado.</div></div>';
+
+  h += '<label for="eObs">Observação</label>' +
+       '<input id="eObs" value="' + esc(x.obs || '') + '">';
+
+  h += '<label>Peças por espessura</label><div class="pecas-esp" id="ePecas"></div>';
+  h += '</div>';
+
+  h += '<div class="sh-btns">' +
+         '<button type="button" class="btn-mid" id="eSalvar">Salvar alterações</button>' +
+         '<button type="button" class="btn-ghost" id="eCancelar">Cancelar</button>' +
+       '</div>';
+
+  $('sheetBody').innerHTML = h;
+  $('ov').scrollTop = 0;
+
+  /* edição das peças por espessura */
+  let pecasEd = (x.pecasEsp && x.pecasEsp.length)
+    ? x.pecasEsp.map(p => ({cm:p.cm, passadas:p.passadas || 1, n:p.n}))
+    : pecasVazias();
+  let catEd = x.categoria || 'civil';
+
+  function draw(){
+    const lista = pecasEd.filter(p => catEd === 'funeraria' ? true : p.cm <= 3);
+    desenharPecasEsp($('ePecas'), lista, draw, false);
+  }
+  draw();
+
+  document.querySelectorAll('[data-ecat]').forEach(b => {
+    b.onclick = () => {
+      catEd = b.getAttribute('data-ecat');
+      document.querySelectorAll('[data-ecat]').forEach(y => y.classList.toggle('on', y === b));
+      $('eM2Wrap').style.display = (catEd === 'funeraria') ? 'none' : 'block';
+      draw();
+    };
+  });
+
+  $('eClose').onclick = () => abrirDetalhe(id);
+  $('eCancelar').onclick = () => abrirDetalhe(id);
+  $('eSalvar').onclick = () => {
+    x.proj = $('eProj').value.trim() || x.proj;
+    x.tipo = $('eTipo').value;
+    x.categoria = catEd;
+    x.m2 = (catEd === 'funeraria') ? 0 : num($('eM2').value);
+    x.obs = $('eObs').value.trim();
+    x.pecasEsp = pecasEd.filter(p => p.n > 0);
+    x.pecas = totalPecas(x.pecasEsp);
+    salvar(); render(); abrirDetalhe(id);
+  };
+}
+
+function fecharDetalhe(){ $('ov').classList.remove('on'); }
+
+$('ov').onclick = ev => { if (ev.target === $('ov')) fecharDetalhe(); };
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') fecharDetalhe(); });
+
+/* ---------- seletores de material em cascata ---------- */
+function materialEscolhido(){
+  const nome = $('mat').value;
+  const acab = $('acab').value;
+  const lote = $('loteWrap').style.display !== 'none' ? $('lote').value : '';
+  return nomeMaterial(nome, acab, lote);
+}
+
+function preencherFamilias(){
+  const cat = catalogo();
+  const fsel = $('fam'), nsel = $('novaFam');
+  const atual = fsel.value;
+  fsel.innerHTML = Object.keys(cat).map(f => '<option>' + esc(f) + '</option>').join('');
+  if (atual && cat[atual]) fsel.value = atual;
+  nsel.innerHTML = Object.keys(cat).map(f => '<option>' + esc(f) + '</option>').join('') +
+                   '<option>Outro</option>';
+}
+
+function preencherMateriais(){
+  const cat = catalogo();
+  const fam = $('fam').value;
+  const lista = Object.keys(cat[fam] || {});
+  const atual = $('mat').value;
+  $('mat').innerHTML = lista.map(n => '<option>' + esc(n) + '</option>').join('');
+  if (atual && lista.indexOf(atual) !== -1) $('mat').value = atual;
+  preencherAcabamentos();
+}
+
+function preencherAcabamentos(){
+  const cat = catalogo();
+  const fam = $('fam').value, nome = $('mat').value;
+  const lista = (cat[fam] || {})[nome] || ['Polido'];
+  $('acab').innerHTML = lista.map(a => '<option>' + esc(a) + '</option>').join('');
+  const lote = MAT_LOTE.indexOf(nome) !== -1;
+  $('loteWrap').style.display = lote ? 'grid' : 'none';
+}
+
+$('fam').onchange = preencherMateriais;
+$('mat').onchange = preencherAcabamentos;
+
+/* categoria: define quais espessuras aparecem */
+document.querySelectorAll('[data-cat]').forEach(b => {
+  b.onclick = () => {
+    CATEGORIA = b.getAttribute('data-cat');
+    document.querySelectorAll('[data-cat]').forEach(x => x.classList.toggle('on', x === b));
+    $('catHint').textContent = CATEGORIA === 'funeraria'
+      ? 'Espessuras de 2 a 8 cm, usadas em arte funerária.'
+      : 'Espessuras de 2 e 3 cm. Para 4 cm ou mais, use Arte funerária.';
+    /* o m² só é lançado na construção civil */
+    const sepult = (CATEGORIA === 'funeraria');
+    $('m2Wrap').style.display = sepult ? 'none' : 'block';
+    $('m2Nota').style.display = sepult ? 'block' : 'none';
+    if (sepult) $('m2').value = '';
+    desenharPecasEsp($('pecasEsp'), PECAS_TMP, () => renderPecasForm(), false);
+  };
+});
+$('mat').onchange = preencherAcabamentos;
+
+/* adicionar material novo */
+function mostrarAdd(v){
+  $('novoMatWrap').style.display = v ? 'block' : 'none';
+  $('novaFamWrap').style.display = v ? 'block' : 'none';
+  $('novoAcabWrap').style.display = v ? 'block' : 'none';
+  $('addMatOk').style.display = v ? 'block' : 'none';
+  $('addMat').textContent = v ? 'Cancelar' : 'Adicionar material novo';
+}
+let addAberto = false;
+$('addMat').onclick = () => { addAberto = !addAberto; mostrarAdd(addAberto); };
+
+$('addMatOk').onclick = () => {
+  const nome = $('novoNome').value.trim();
+  if (!nome){ alert('Dê um nome ao material.'); return; }
+  const familia = $('novaFam').value, acab = $('novoAcab').value;
+  CAT_EXTRA.push({familia: familia, nome: nome, acab: acab});
+  salvarExtra();
+  $('novoNome').value = '';
+  addAberto = false; mostrarAdd(false);
+  preencherFamilias();
+  $('fam').value = familia; preencherMateriais();
+  if (Object.keys(catalogo()[familia] || {}).indexOf(nome) !== -1){
+    $('mat').value = nome; preencherAcabamentos(); $('acab').value = acab;
+  }
+};
+
+/* ---------- render: bloco de peças por espessura ---------- */
+let PECAS_TMP = pecasVazias();     // usado no cadastro, antes de iniciar
+
+function desenharPecasEsp(container, lista, onChange, compacto){
+  if (!container) return;
+  const tot = totalPecas(lista);
+  container.innerHTML = lista.map((p, i) =>
+    '<div class="pe ' + (p.n > 0 ? 'on' : '') + '">' +
+      '<span class="lb">' + p.cm + ' cm' +
+        '<small>' + p.passadas + ' passada' + (p.passadas > 1 ? 's' : '') + ' por corte</small></span>' +
+      '<span class="ct">' +
+        '<button type="button" class="pb" data-pe="' + i + '|-1">−</button>' +
+        '<span class="n">' + p.n + '</span>' +
+        '<button type="button" class="pb" data-pe="' + i + '|1">+</button>' +
+      '</span>' +
+    '</div>').join('') +
+    (compacto ? '' :
+      '<div class="pe-tot"><span>Total de peças</span><span>' + tot + '</span></div>' +
+      '<div class="pe-tot"><span>Passadas estimadas</span><span>' + totalPassadas(lista) + '</span></div>');
+
+  container.querySelectorAll('[data-pe]').forEach(b => {
+    b.onclick = ev => {
+      ev.stopPropagation();
+      const [i, d] = b.getAttribute('data-pe').split('|').map(Number);
+      lista[i].n = Math.max(0, lista[i].n + d);
+      onChange();
+    };
+  });
+}
+
+function renderPecasForm(){
+  const lista = PECAS_TMP.filter(p => CATEGORIA === 'funeraria' ? true : p.cm <= 3);
+  desenharPecasEsp($('pecasEsp'), lista, () => renderPecasForm(), false);
+}
+
+/* ---------- chips de velocidade ---------- */
+function renderVels(){
+  $('vchips').innerHTML = velocidades.length
+    ? velocidades.map(v => '<button type="button" class="vchip" data-vel="' + v + '">' +
+        nBR(v,1).replace(',0','') + '</button>').join('')
+    : '<span class="hint">As velocidades usadas ficam salvas aqui para reutilizar.</span>';
+  document.querySelectorAll('[data-vel]').forEach(b => {
+    b.onclick = () => { $('vel').value = b.getAttribute('data-vel'); };
+  });
+}
+
+/* ---------- botoes ---------- */
+$('btn').onclick = () => { aberto() ? finalizar() : iniciarServico(); };
+$('btnBump').onclick = () => {
+  if (!aberto()) return;
+  escolherEtapa('pausa');
+};
+
+$('btnExport').onclick = () => {
+  const feitos = registros.filter(x => x.fim);
+  if (!feitos.length){ alert('Nenhum registro para exportar ainda.'); return; }
+  const cab = ['projeto','categoria','tipo','material','pecas','m2_total','chapas_total','chapas_projeto','chapas_avulsa','velocidade_avanco',
+               'inicio','fim','min_corte','min_buscar_chapa','min_ajustar_serra','min_tirar_pecas','min_ciclo',
+               'min_busca_avulsa','min_pausa','m2_por_hora_corte','m2_por_hora_ciclo',
+               'pecas_por_espessura','min_por_espessura','passadas_estimadas','observacao'];
+  const linhas = feitos.map(x => {
+    const corte = acumulado(x,'corte')/60000, chapa = acumulado(x,'chapa')/60000;
+    const mesa = acumulado(x,'mesa')/60000, ciclo = corte + chapa + acumulado(x,'serra')/60000 + mesa;
+    /* peças e minutos por espessura, ex: "3:4|6:5" e "3:12.5|6:22" */
+    const listaPe = (x.pecasEsp || []).filter(p => p.n > 0);
+    const txtPecas = listaPe.map(p => p.cm + ':' + p.n).join('|');
+    const txtMin = (x.lotes || []).map(l => l.cm + ':' + nBR(l.ms/60000,2)).join('|');
+    const passadas = listaPe.reduce((s2,p) => s2 + p.n * (p.passadas||1), 0);
+    return [ x.proj, (x.categoria === 'funeraria' ? 'Arte funerária' : 'Construção civil'),
+      x.tipo, x.mat, x.pecas, nBR(x.m2,2),
+      nBR(chapasTotal(x),0), nBR(chapasDe(x,'chapa'),0), nBR(chapasDe(x,'avulsa'),0), nBR(x.vel,1),
+      new Date(x.inicio).toLocaleString('pt-BR'), new Date(x.fim).toLocaleString('pt-BR'),
+      nBR(corte,2), nBR(chapa,2), nBR(acumulado(x,'serra')/60000,2), nBR(mesa,2), nBR(ciclo,2),
+      nBR(acumulado(x,'avulsa')/60000,2), nBR(acumulado(x,'pausa')/60000,2),
+      (x.m2>0 && corte>0 ? nBR(x.m2/(corte/60),3) : ''),
+      (x.m2>0 && ciclo>0 ? nBR(x.m2/(ciclo/60),3) : ''),
+      txtPecas, txtMin, passadas,
+      (x.obs||'').replace(/[\r\n;]+/g,' ') ].join(';');
+  });
+  const csv = '\uFEFF' + cab.join(';') + '\n' + linhas.join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = 'producao_corte_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+};
+
+/* ================= IMPORTAR CSV =================
+   Le o CSV que o proprio site gera. Aceita as duas formas de data
+   (pt-BR ou ISO) e ignora linhas vazias. Ao carregar, pergunta se
+   soma ao que ja existe ou substitui tudo. */
+let CSV_LIDO = null;      // registros prontos para entrar
+let CSV_INFO = null;      // resumo do que foi lido
+
+/* quebra uma linha de CSV respeitando aspas */
+function linhaCsv(txt){
+  const out = []; let cur = '', dentro = false;
+  for (let i = 0; i < txt.length; i++){
+    const c = txt[i];
+    if (c === '"'){
+      if (dentro && txt[i+1] === '"'){ cur += '"'; i++; }
+      else dentro = !dentro;
+    } else if (c === ';' && !dentro){ out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out.map(x => x.trim());
+}
+
+function paraNumero(t){
+  if (!t) return 0;
+  const n = parseFloat(String(t).replace(/\./g,'').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+
+/* aceita "12/11/2026 07:30:00" e "2026-11-12T07:30:00.000Z" */
+function paraData(t){
+  if (!t) return null;
+  const iso = new Date(t);
+  if (!isNaN(iso.getTime()) && /^\d{4}-/.test(t.trim())) return iso;
+  const m = t.match(/(\d{2})\/(\d{2})\/(\d{4})[ ,]+(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
+  return null;
+}
+
+function analisarCsv(texto){
+  texto = texto.replace(/^\uFEFF/, '');
+  const linhas = texto.split(/\r?\n/).filter(l => l.trim().length);
+  if (linhas.length < 2) return { erro: 'O arquivo está vazio.' };
+
+  const cab = linhaCsv(linhas[0]).map(c => c.toLowerCase());
+  const col = (nome) => cab.indexOf(nome);
+  const precisa = ['projeto','inicio','fim'];
+  const faltando = precisa.filter(n => col(n) === -1);
+  if (faltando.length){
+    return { erro: 'O arquivo não é um CSV do Corte. Colunas ausentes: ' +
+                   faltando.join(', ') + '.' };
+  }
+
+  const cMin = (n) => { const i = col(n); return i === -1 ? null : i; };
+  const idx = {
+    proj:cMin('projeto'), cat:cMin('categoria'), tipo:cMin('tipo'), mat:cMin('material'),
+    pecas:cMin('pecas'),
+    m2:cMin('m2_total'), chProj:cMin('chapas_projeto'), chAva:cMin('chapas_avulsa'),
+    chTot:cMin('chapas_total'), chapas:cMin('chapas'), vel:cMin('velocidade_avanco'),
+    ini:cMin('inicio'), fim:cMin('fim'),
+    corte:cMin('min_corte'), chapa:cMin('min_buscar_chapa'), serra:cMin('min_ajustar_serra'),
+    mesa:cMin('min_tirar_pecas'),
+    avulsa:cMin('min_busca_avulsa'), pausa:cMin('min_pausa'),
+    txtPe:cMin('pecas_por_espessura'), txtMin:cMin('min_por_espessura'),
+    obs:cMin('observacao')
+  };
+
+  /* "3:4|6:5" -> [{cm:3, n:4}, {cm:6, n:5}] */
+  function pares(txt, comCasas){
+    if (!txt) return [];
+    return String(txt).split('|').map(p => {
+      const [a, b] = p.split(':');
+      const cm = parseInt(a, 10);
+      const v = comCasas ? parseFloat(String(b).replace(',', '.')) : parseInt(b, 10);
+      if (isNaN(cm) || isNaN(v)) return null;
+      return { cm: cm, v: v };
+    }).filter(x => x);
+  }
+
+  const out = [], problemas = [];
+  const vistos = {};
+  registros.filter(x => x.fim).forEach(x => { vistos[x.proj + '|' + x.inicio] = 1; });
+
+  for (let i = 1; i < linhas.length; i++){
+    const c = linhaCsv(linhas[i]);
+    const g = (k) => (idx[k] === null || idx[k] === undefined) ? '' : (c[idx[k]] || '');
+    const ini = paraData(g('ini')), fim = paraData(g('fim'));
+    if (!ini || !fim){ problemas.push('linha ' + (i+1) + ': data ilegível'); continue; }
+
+    const min = (k) => Math.round(paraNumero(g(k)) * 60000);
+    const reg = {
+      id: 'imp' + Date.now().toString(36) + i,
+      proj: g('proj') || 'sem nº',
+      tipo: g('tipo') || 'Outro',
+      mat: g('mat') || '',
+      fam: familiaDoMaterial(g('mat') || ''),
+      pecas: Math.round(paraNumero(g('pecas'))),
+      categoria: (String(g('cat')).toLowerCase().indexOf('funer') !== -1) ? 'funeraria' : 'civil',
+      pecasEsp: pares(g('txtPe'), false).map(p => ({
+        cm: p.cm,
+        passadas: (ESPESSURAS.find(e => e.cm === p.cm) || {}).passadas || 1,
+        n: p.v
+      })),
+      lotes: pares(g('txtMin'), true).map(p => ({ cm: p.cm, ms: Math.round(p.v * 60000) })),
+      m2: paraNumero(g('m2')),
+      vel: paraNumero(g('vel')),
+      obs: g('obs') || '',
+      origem: '',
+      chapasMarcadas: [],
+      inicio: ini.toISOString(),
+      fim: fim.toISOString(),
+      corte: [], chapa: [], serra: [], mesa: [], avulsa: [], pausa: []
+    };
+    ['corte','chapa','serra','mesa','avulsa','pausa'].forEach(k => {
+      const ms = min(k);
+      if (ms > 0) reg[k].push({ ini: reg.inicio, fim: reg.fim, ms: ms });
+    });
+
+    /* chapas: usa a quebra por origem quando existir, senão o total */
+    let chP = paraNumero(g('chProj')), chA = paraNumero(g('chAva'));
+    if (!chP && !chA){
+      const t = paraNumero(g('chTot')) || paraNumero(g('chapas'));
+      chP = t;
+    }
+    for (let n = 0; n < Math.round(chP*2); n++)
+      reg.chapasMarcadas.push({ origem:'chapa', quando: reg.inicio, qtd:0.5 });
+    for (let n = 0; n < Math.round(chA*2); n++)
+      reg.chapasMarcadas.push({ origem:'avulsa', quando: reg.inicio, qtd:0.5 });
+
+    if (reg.pecasEsp.length && !reg.pecas)
+      reg.pecas = reg.pecasEsp.reduce((s2,p)=> s2 + p.n, 0);
+    reg.duplicado = !!vistos[reg.proj + '|' + reg.inicio];
+    out.push(reg);
+  }
+
+  return { registros: out, problemas: problemas };
+}
+
+function resumoCsv(){
+  const L = CSV_LIDO || [];
+  if (!L.length) return { m2:0, corte:0, n:0, de:null, ate:null, dup:0, emUso:0 };
+  const datas = L.map(r => new Date(r.inicio)).sort((a,b)=> a-b);
+  return {
+    m2: L.reduce((s,r)=> s + r.m2, 0),
+    corte: L.reduce((s,r)=> s + acumulado(r,'corte'), 0),
+    n: L.length,
+    de: datas[0], ate: datas[datas.length-1],
+    dup: L.filter(r => r.duplicado).length,
+    emUso: registros.filter(x => x.fim).length
+  };
+}
+
+function mostrarPrevia(){
+  const r = resumoCsv();
+  const box = $('prevBox');
+  if (!CSV_LIDO || !CSV_LIDO.length){
+    box.innerHTML = '<div class="prev err">Nenhum serviço válido neste arquivo.</div>';
+    return;
+  }
+  box.innerHTML =
+    '<div class="prev">' +
+      '<span class="hl">' + r.n + ' serviço(s)</span> no arquivo<br>' +
+      nBR(r.m2,1) + ' m² &nbsp;·&nbsp; ' + nBR(r.corte/3600000,1) + ' h de serra<br>' +
+      'de ' + dCurta(r.de) + ' a ' + dCurta(r.ate) +
+      (r.dup ? '<br><span class="warn">' + r.dup + ' já está(ão) no celular — ' +
+               'esses serão ignorados se você somar.</span>' : '') +
+    '</div>' +
+    '<div class="seg">' +
+      '<button type="button" class="sg on" id="sgSomar">Somar aos ' + r.emUso + ' atuais</button>' +
+      '<button type="button" class="sg" id="sgSub">Substituir tudo</button>' +
+    '</div>' +
+    '<button type="button" class="btn-mid" id="btnConf" style="margin-top:10px">Carregar agora</button>' +
+    '<button type="button" class="btn-ghost" id="btnCanc" style="margin-top:8px">Cancelar</button>';
+
+  let modo = 'somar';
+  $('sgSomar').onclick = () => { modo = 'somar'; $('sgSomar').classList.add('on'); $('sgSub').classList.remove('on'); };
+  $('sgSub').onclick   = () => { modo = 'sub';   $('sgSub').classList.add('on');   $('sgSomar').classList.remove('on'); };
+  $('btnCanc').onclick = () => { CSV_LIDO = null; $('prevBox').innerHTML = ''; $('fileCsv').value = ''; };
+
+  $('btnConf').onclick = () => {
+    let entrar = CSV_LIDO.slice();
+    if (modo === 'somar'){
+      const ja = {};
+      registros.filter(x => x.fim).forEach(x => { ja[x.proj + '|' + x.inicio] = 1; });
+      entrar = entrar.filter(r => !ja[r.proj + '|' + r.inicio]);
+      registros = registros.concat(entrar);
+    } else {
+      registros = entrar;
+    }
+    salvar();
+    CSV_LIDO = null;
+    $('prevBox').innerHTML =
+      '<div class="prev"><span class="hl">' + entrar.length + ' serviço(s) carregado(s).</span><br>' +
+      'Agora são ' + registros.filter(x => x.fim).length + ' no total. ' +
+      'O painel já está atualizado.</div>';
+    $('fileCsv').value = '';
+    render();
+  };
+}
+
+function lerArquivo(file){
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    const res = analisarCsv(String(fr.result));
+    if (res.erro){
+      CSV_LIDO = null;
+      $('prevBox').innerHTML = '<div class="prev err">' + esc(res.erro) + '</div>';
+      return;
+    }
+    CSV_LIDO = res.registros;
+    mostrarPrevia();
+    if (res.problemas.length)
+      $('prevBox').insertAdjacentHTML('beforeend',
+        '<div class="prev warn">' + res.problemas.length + ' linha(s) ignorada(s): ' +
+        esc(res.problemas.slice(0,3).join(' · ')) + '</div>');
+  };
+  fr.readAsText(file, 'utf-8');
+}
+
+$('drop').onclick = () => $('fileCsv').click();
+$('fileCsv').onchange = ev => lerArquivo(ev.target.files[0]);
+['dragenter','dragover'].forEach(e => $('drop').addEventListener(e, ev => {
+  ev.preventDefault(); $('drop').classList.add('hover');
+}));
+['dragleave','drop'].forEach(e => $('drop').addEventListener(e, ev => {
+  ev.preventDefault(); $('drop').classList.remove('hover');
+}));
+$('drop').addEventListener('drop', ev => {
+  if (ev.dataTransfer && ev.dataTransfer.files.length) lerArquivo(ev.dataTransfer.files[0]);
+});
+
+$('btnClear').onclick = () => {
+  if (confirm('Apagar TODOS os registros? Não tem como desfazer. Exporte o CSV antes.')){
+    registros = []; salvar(); render();
+  }
+};
+
+/* ---------- relogio: atualiza os cartoes ativos a cada segundo ---------- */
+setInterval(() => {
+  const r = aberto();
+  if (!r) return;
+  $('clock').textContent = fmtDur(Date.now()-new Date(r.inicio).getTime());
+  ETAPAS.forEach(e => {
+    const el = document.querySelector('[data-etapa="' + e.id + '"]');
+    if (!el) return;
+    let on = false;
+    if (e.id === 'avulsa')     on = !!avulsaIni;
+    else if (e.id === 'pausa') on = !!pausaIni;
+    else                       on = (etapa === e.id) && !pausaIni;
+    const t = el.querySelector('.t');
+    if (t) t.textContent = on ? fmtDur(msEtapa(r, e.id)) : fmtCurto(msEtapa(r, e.id));
+    const tot = el.querySelector('.tot');
+    if (tot) tot.innerHTML = 'total do serviço<br>' + fmtCurto(msEtapa(r, e.id));
+  });
+  const sAv = $('sAvulsa');
+  if (sAv) sAv.innerHTML = Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>';
+}, 1000);
+
+/* ---------- servicos de exemplo (carregam so na primeira vez) ---------- */
+function semearExemplos(){
+  if (registros.length) return;                       // nunca sobrescreve dados reais
+  if (localStorage.getItem('corte_seed_v1')) return;   // ja semeou antes
+
+  const D = (dia, h, m) => new Date(2026, 10, dia, h, m, 0);   // novembro/2026
+  const T = (ini, min) => { const f = new Date(ini.getTime() + min*60000); return f.toISOString(); };
+  const F = {
+    corte:'#4A90E2', chapa:'#F2994A', mesa:'#9B6BC7', avulsa:'#5BB8C4', pausa:'#E05B5B'
+  };
+
+  // [projeto, tipo, material, pecas, m2, vel, dia, hora_ini, {etapa:minutos}, chapas_proj, chapas_avulsa, obs]
+  const base = [
+    ['OS-1201','Bancada','Preto São Gabriel',6,3.10,1.5,11,7,30,
+      {chapa:22, corte:148, mesa:18, avulsa:0, pausa:0},1,0,'Cozinha residencial — 2 cubas'],
+    ['OS-1202','Lavatório','Quartzito Perla Santana',4,0.90,1.2,11,13,0,
+      {chapa:9, corte:52, mesa:9, avulsa:14, pausa:0},0.5,0.5,'Aproveitei retalho da OS-1180'],
+    ['OS-1203','Bancada','Branco Paraná',10,4.60,1.6,12,7,40,
+      {chapa:31, corte:196, mesa:22, avulsa:0, pausa:25},1,0,'Bancada em L — pausa p/ atender cliente'],
+    ['OS-1204','Rodapé','Preto São Gabriel',3,3.00,1.8,13,13,20,
+      {chapa:12, corte:88, mesa:14, avulsa:0, pausa:0},0.5,0,'Rodapé 10 cm — 100% retalho'],
+    ['OS-1205','Ilha','Ocre',5,2.70,1.4,14,8,0,
+      {chapa:26, corte:156, mesa:24, avulsa:18, pausa:0},1,0.5,'Ilha — peça riscada, refeita'],
+    ['OS-1206','Bancada','Cinza Corumbá',8,5.40,1.5,17,7,30,
+      {chapa:34, corte:214, mesa:26, avulsa:0, pausa:0},2,0,'3 banheiros + copa'],
+    ['OS-1207','Soleira','Mármore Travertino',12,4.20,1.9,18,7,45,
+      {chapa:18, corte:132, mesa:20, avulsa:22, pausa:0},1,0.5,'12 soleiras de 1,20 m'],
+    ['OS-1208','Escada','Preto São Gabriel',4,6.20,1.1,19,7,30,
+      {chapa:41, corte:268, mesa:31, avulsa:0, pausa:30},2,0,'Escada reta — 14 degraus + patamar'],
+    ['OS-1209','Nicho','Quartzo Branco',6,1.50,1.7,20,13,0,
+      {chapa:8, corte:64, mesa:10, avulsa:0, pausa:0},0.5,0,'Nichos de banheiro'],
+    ['OS-1210','Mesa','Ocre',2,3.40,1.5,23,7,40,
+      {chapa:21, corte:142, mesa:18, avulsa:0, pausa:0},1,0,'Tampo 2,20 x 1,00'],
+    ['OS-1211','Bancada','Granito Amarelo Ornamental',9,6.80,1.4,24,7,30,
+      {chapa:38, corte:232, mesa:29, avulsa:26, pausa:0},2,0.5,'Bancada industrial'],
+    ['OS-1212','Tampo','Mármore Carrara',4,2.00,1.6,25,8,0,
+      {chapa:11, corte:78, mesa:12, avulsa:0, pausa:0},0.5,0,'Tampos de pia'],
+    ['OS-1213','Bancada','Preto São Gabriel',7,4.50,1.5,26,7,35,
+      {chapa:27, corte:176, mesa:23, avulsa:0, pausa:20},1,0,'Bancada em U'],
+    ['OS-1214','Aparador','Verde Ubatuba',5,2.40,1.2,27,7,50,
+      {chapa:14, corte:96, mesa:15, avulsa:0, pausa:0},0.5,0,'Aparador para loja'],
+    ['OS-1215','Lavatório','Quartzito Perla Santana',6,1.70,1.3,30,13,0,
+      {chapa:10, corte:72, mesa:11, avulsa:12, pausa:0},0.5,0.5,'2 lavatórios'],
+    ['OS-1216','Bancada','Preto São Gabriel',10,7.20,1.6,1,7,30,
+      {chapa:36, corte:238, mesa:28, avulsa:0, pausa:0},2,0,'Empreendimento — 5 cozinhas'],
+    ['OS-1217','Peitoril','Branco Paraná',3,2.30,1.7,2,8,0,
+      {chapa:13, corte:86, mesa:13, avulsa:0, pausa:0},0.5,0,'Peitoris de 4 janelas'],
+    ['OS-1218','Escada','Cinza Corumbá',4,5.00,1.1,3,7,30,
+      {chapa:33, corte:204, mesa:26, avulsa:20, pausa:0},2,0.5,'Escada em L'],
+    ['OS-1219','Bancada','Ocre',8,6.30,1.5,4,7,40,
+      {chapa:32, corte:218, mesa:25, avulsa:0, pausa:35},2,0,'Bancada com cooktop'],
+    ['OS-1220','Ilha','Quartzito Perla Santana',2,4.10,1.4,7,7,30,
+      {chapa:24, corte:154, mesa:19, avulsa:0, pausa:0},1,0,'Ilha gourmet'],
+    ['OS-1221','Bancada','Preto São Gabriel',6,5.20,1.5,8,7,45,
+      {chapa:29, corte:184, mesa:21, avulsa:24, pausa:0},1,0.5,'Ajuste de medidas pelo cliente'],
+    ['OS-1222','Rodapé','Granito Amarelo Ornamental',5,3.80,1.8,9,13,0,
+      {chapa:16, corte:108, mesa:17, avulsa:0, pausa:0},1,0,'Rodapés de 15 cm'],
+    ['OS-1223','Bancada','Branco Paraná',11,8.40,1.6,10,7,30,
+      {chapa:39, corte:256, mesa:30, avulsa:28, pausa:0},3,0.5,'Obra grande — 6 unidades'],
+    ['OS-1224','Tampo','Mármore Carrara',4,2.60,1.6,11,8,0,
+      {chapa:14, corte:94, mesa:14, avulsa:0, pausa:0},1,0,'Tampos de mesa de jantar']
+  ];
+
+  base.forEach((b, i) => {
+    const [proj, tipo, mat, pecas, m2, vel, dia, hh, mm, mins, chProj, chAva, obs] = b;
+    const inicio = D(dia, hh, mm);
+    const etapas = ['chapa','corte','mesa','avulsa','pausa'];
+    const totalMin = etapas.reduce((s,k)=> s + (mins[k]||0), 0);
+
+    const reg = {
+      id: 'demo' + String(i+1).padStart(3,'0'),
+      proj: proj, tipo: tipo, mat: mat, pecas: pecas, m2: m2,
+      vel: vel, obs: obs, origem: '',
+      chapasMarcadas: [],
+      inicio: inicio.toISOString(),
+      fim: T(inicio, totalMin),
+      corte: [], chapa: [], serra: [], mesa: [], avulsa: [], pausa: []
+    };
+
+    // cada etapa comeca onde a anterior terminou (a avulsa roda junto, marcada no meio)
+    let cursor = new Date(inicio.getTime());
+    let cursorAvulsa = null;
+    etapas.forEach(k => {
+      const m = mins[k] || 0;
+      if (!m) return;
+      if (k === 'avulsa'){
+        cursorAvulsa = new Date(cursor.getTime() + 5*60000);
+        reg.avulsa.push({ ini: cursorAvulsa.toISOString(), fim: T(cursorAvulsa, m), ms: m*60000 });
+      } else {
+        reg[k].push({ ini: cursor.toISOString(), fim: T(cursor, m), ms: m*60000 });
+        cursor = new Date(cursor.getTime() + m*60000);
+      }
+    });
+
+    // chapas: cada marcacao vale 0,5
+    for (let c = 0; c < Math.round(chProj*2); c++)
+      reg.chapasMarcadas.push({ origem:'chapa', quando: inicio.toISOString(), qtd:0.5 });
+    for (let c = 0; c < Math.round(chAva*2); c++)
+      reg.chapasMarcadas.push({ origem:'avulsa', quando: inicio.toISOString(), qtd:0.5 });
+
+    registros.push(reg);
+  });
+
+  salvar();
+  try { localStorage.setItem('corte_seed_v1','1'); } catch(e){}
+}
+
+/* ---------- app offline: guarda o proprio arquivo para abrir sem internet ---------- */
+function instalarServiceWorker(){
+  if (!('serviceWorker' in navigator)) return;
+  if (location.protocol === 'file:') return;        // abrindo do arquivo, sem SW
+  const sw = `
+const CACHE = 'corte-v1';
+const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon.png'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS).catch(()=>{})));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks =>
+    Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).then(r => {
+      const copia = r.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copia)).catch(()=>{});
+      return r;
+    }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+  );
+});
+`;
+  try {
+    const url = URL.createObjectURL(new Blob([sw], {type:'text/javascript'}));
+    navigator.serviceWorker.register(url).catch(() => {});
+  } catch(e){}
+}
+
+/* ---------- inicializacao: retoma servico aberto ---------- */
+(function init(){
+  semearExemplos();
+  const r = aberto();
+  if (r){
+    etapa = r.__etapa || null;
+    etapaIni = r.__etapaIni || null;
+    avulsaIni = r.__avulsaIni || null;
+    pausaIni = r.__pausaIni || null;
+    espAtual = r.__espAtual || null;
+    espIni = r.__espIni || null;
+    CATEGORIA = r.categoria || 'civil';
+    if (etapa && !etapaIni) etapaIni = new Date().toISOString();
+  }
+  renderVels();
+  preencherFamilias();
+  preencherMateriais();
+  renderPecasForm();
+  render();
+  instalarServiceWorker();
+})();
+</script>
+</body>
+</html>
