@@ -718,6 +718,8 @@
 
 <p class="hint" id="instrucao" style="display:none"></p>
 
+<button id="btn" class="btn-start" style="margin-top:12px">Iniciar serviço</button>
+
 </div><!-- /estagioB -->
 
 <div id="estagioC" class="estagio" style="display:none">
@@ -744,7 +746,6 @@
 </div>
 
 <button id="btnBump" class="btn-mid" style="margin-top:8px">Pausa comum</button>
-<button id="btn" class="btn-start" style="margin-top:12px">Iniciar serviço</button>
 
 <div class="section-h">Serviço aberto</div>
 <div id="runningList"></div>
@@ -1584,7 +1585,7 @@ function render(){
   setTxt('sM2HC', (tCorte>0 ? nBR(tM2/(tCorte/3600000),2) : '0,00') + '<span class="u"> m²/h</span>');
   setTxt('sM2HT', (tCiclo>0 ? nBR(tM2/(tCiclo/3600000),2) : '0,00') + '<span class="u"> m²/h</span>');
   setTxt('sN', String(feitos.length));
-  setTxt('sAvulsa', Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>');
+
 
   const bf = $('btnFinalizarAgora');
   if (bf) bf.onclick = () => finalizar();
@@ -3001,8 +3002,7 @@ setInterval(() => {
     const tot = el.querySelector('.tot');
     if (tot) tot.innerHTML = 'total do serviço<br>' + fmtCurto(msEtapa(r, e.id));
   });
-  const sAv = $('sAvulsa');
-  if (sAv) sAv.innerHTML = Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>';
+
 }, 1000);
 
 /* ---------- servicos de exemplo (carregam so na primeira vez) ---------- */
