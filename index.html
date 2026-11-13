@@ -88,6 +88,55 @@
   .btn-mid{background:var(--card2);border:1px solid var(--line2);color:var(--txt);
     font-size:15px;padding:15px;font-weight:600;}
 
+  /* ---------- estagios da tela ---------- */
+  .estagio{animation:sobe .28s cubic-bezier(.2,.8,.3,1);}
+  @keyframes sobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .ini-hero{background:linear-gradient(165deg,#1B2330,#141A23);border:1px solid var(--line2);
+    border-radius:var(--rl);padding:26px 20px 24px;text-align:center;margin-bottom:16px;
+    position:relative;overflow:hidden;}
+  .ini-hero::after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;
+    border-radius:50%;background:radial-gradient(circle,rgba(91,155,243,.14),transparent 70%);}
+  .ini-ic{width:46px;height:46px;border-radius:14px;margin:0 auto 14px;
+    background:linear-gradient(160deg,#5B9BF3,#2F6BD0);
+    box-shadow:0 8px 22px -8px rgba(91,155,243,.6);position:relative;}
+  .ini-ic::after{content:"";position:absolute;inset:13px;border-radius:50%;
+    border:2.5px solid rgba(6,20,40,.85);border-top-color:transparent;
+    transform:rotate(-40deg);}
+  .ini-t{font-size:23px;font-weight:700;letter-spacing:-.6px;}
+  .ini-s{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:34px;font-weight:700;letter-spacing:-2px;margin-top:6px;
+    font-feature-settings:"tnum";color:var(--azul);}
+  .ini-d{font-size:12.5px;color:var(--sub);margin-top:5px;text-transform:capitalize;}
+  .ini-lbl{font-size:10.5px;color:var(--sub);text-transform:uppercase;letter-spacing:1.3px;
+    font-weight:800;margin:0 0 10px 3px;}
+
+  .btn-turno{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--card);border:1px solid var(--line2);border-radius:var(--r);
+    padding:17px 18px;width:100%;text-align:left;color:var(--txt);box-shadow:var(--sh);}
+  .btn-turno:active{background:var(--card2);transform:scale(.985);}
+  .btn-turno .bt-l{display:flex;flex-direction:column;gap:3px;}
+  .btn-turno .bt-n{font-size:16.5px;font-weight:700;letter-spacing:-.3px;}
+  .btn-turno .bt-h{font-size:11.5px;color:var(--sub);font-weight:600;}
+  .btn-turno .bt-go{font-size:22px;color:#4A5462;line-height:1;}
+  .btn-turno.on{border-color:var(--azul);background:rgba(91,155,243,.09);}
+  .btn-turno.on .bt-go{color:var(--azul);}
+  .btn-turno.on .bt-h{color:var(--azul);}
+
+  /* ---------- turno ---------- */
+  .turno-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+  .turno-k{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;font-weight:800;}
+  .turno-n{font-size:19px;font-weight:700;letter-spacing:-.5px;margin-top:4px;}
+  .turno-r{text-align:right;flex-shrink:0;}
+  .turno-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:22px;font-weight:700;letter-spacing:-1px;font-feature-settings:"tnum";}
+  .turno-s{font-size:11px;color:var(--sub);margin-top:3px;}
+  .turno-btns{display:flex;flex-direction:column;gap:8px;}
+  .turno-btns button{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .turno-btns button small{font-size:11px;color:var(--sub);font-weight:600;}
+  .turno-btns button.on{border-color:var(--azul);background:rgba(91,155,243,.10);}
+  .turno-btns button.on small{color:var(--azul);}
+
   /* ---------- cronometro ---------- */
   .hero{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);
     padding:16px 18px;text-align:center;margin-bottom:10px;box-shadow:var(--sh);}
@@ -112,6 +161,13 @@
   .esp-c .n{min-width:24px;text-align:center;font-size:15px;font-weight:700;
     font-variant-numeric:tabular-nums;}
   .pb-s{width:38px;height:40px;font-size:16px;}
+  .vel{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+  .vel-l label{margin:0 0 7px;font-size:11.5px;}
+  .vel-i{display:flex;align-items:center;gap:9px;}
+  .vel-i input{flex:1;}
+  .vel-u{font-size:12.5px;color:var(--sub);font-weight:600;flex-shrink:0;}
+  .vel-h{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.5;}
+  .vel-h b{color:var(--txt2);}
   .esp-r{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.5;}
   .esp-r b{color:var(--txt);}
 
@@ -339,6 +395,33 @@
   .ex .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--sub);}
   .ex .foot b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt2);}
 
+  /* ---------- meta do setor ---------- */
+  .meta-atual{margin-bottom:16px;}
+  .meta-atual .k{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.1px;font-weight:800;}
+  .meta-atual .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:34px;font-weight:700;letter-spacing:-2px;line-height:1;margin:7px 0 4px;
+    font-feature-settings:"tnum";}
+  .meta-atual .v small{font-size:14px;color:var(--sub);font-family:inherit;font-weight:600;letter-spacing:0;}
+  .meta-atual .sub{font-size:11.5px;color:var(--sub);line-height:1.5;}
+  .meta-bars{display:flex;align-items:flex-end;gap:6px;height:104px;margin-bottom:8px;}
+  .mb-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;gap:5px;}
+  .mb-v{font-size:9.5px;font-weight:700;color:var(--txt2);font-variant-numeric:tabular-nums;}
+  .mb-bar{flex:1;width:100%;position:relative;display:flex;align-items:flex-end;
+    background:var(--card2);border-radius:5px;}
+  .mb-bar i{display:block;width:100%;border-radius:5px 5px 2px 2px;min-height:2px;}
+  .mb-meta{position:absolute;left:-2px;right:-2px;height:1.5px;background:var(--lar);border-radius:2px;}
+  .mb-l{font-size:9.5px;color:var(--sub);}
+  .meta-extra{font-size:12.5px;color:var(--txt2);margin-top:12px;line-height:1.55;
+    padding-top:11px;border-top:1px solid var(--line);}
+  .meta-extra b{color:var(--verde);}
+  .dia-list{display:flex;flex-direction:column;gap:8px;}
+  .dia-r{display:flex;align-items:center;gap:10px;}
+  .dia-d{font-size:12px;color:var(--txt2);width:74px;flex-shrink:0;font-weight:600;}
+  .dia-b{flex:1;height:7px;border-radius:4px;background:var(--card2);overflow:hidden;}
+  .dia-b i{display:block;height:100%;border-radius:4px;background:var(--azul);}
+  .dia-v{font-size:12px;font-weight:700;color:var(--txt2);width:44px;text-align:right;
+    flex-shrink:0;font-variant-numeric:tabular-nums;}
+
   /* ---------- cartoes de material ---------- */
   .mt-list{display:flex;flex-direction:column;gap:8px;}
   .mt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
@@ -479,7 +562,52 @@
 
 <div id="viewApp">
 
-<div class="hero">
+<div id="estagioB" class="estagio" style="display:none">
+<div class="card" id="turnoBox">
+  <div class="turno-top">
+    <div>
+      <div class="turno-k">Turno</div>
+      <div class="turno-n" id="turnoNome">—</div>
+    </div>
+    <div class="turno-r">
+      <div class="turno-t" id="turnoTempo">00:00</div>
+      <div class="turno-s" id="turnoSub">—</div>
+    </div>
+  </div>
+  <button type="button" class="btn-ghost" id="btnFecharTurno" style="margin-top:12px">Fechar turno</button>
+</div>
+
+<div id="estagioA" class="estagio">
+  <div class="ini-hero">
+    <div class="ini-ic" aria-hidden="true"></div>
+    <div class="ini-t">Bom trabalho</div>
+    <div class="ini-s" id="iniRelogio">--:--</div>
+    <div class="ini-d" id="iniDia">—</div>
+  </div>
+  <div class="ini-lbl">Iniciar turno</div>
+  <div class="turno-btns">
+    <button type="button" class="btn-turno" id="btnManha">
+      <span class="bt-l">
+        <span class="bt-n">Manhã</span>
+        <span class="bt-h">7:30 – 11:30</span>
+      </span>
+      <span class="bt-go" aria-hidden="true">›</span>
+    </button>
+    <button type="button" class="btn-turno" id="btnTarde">
+      <span class="bt-l">
+        <span class="bt-n">Tarde</span>
+        <span class="bt-h">13:00 – 18:00</span>
+      </span>
+      <span class="bt-go" aria-hidden="true">›</span>
+    </button>
+  </div>
+  <div class="hint" id="turnoDica">O app sugere o turno pela hora atual.</div>
+</div><!-- /turnoBox -->
+
+</div><!-- /estagioB -->
+
+<div id="estagioC" class="estagio" style="display:none">
+<div class="hero" id="heroBox">
   <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Nenhum serviço aberto</span></div>
   <div class="clock" id="clock">00:00:00</div>
   <div class="taskname" id="taskNow">Preencha o serviço abaixo</div>
@@ -609,15 +737,6 @@
 
 <button id="btnBump" class="btn-mid" style="margin-top:8px">Pausa comum</button>
 <button id="btn" class="btn-start" style="margin-top:12px">Iniciar serviço</button>
-
-<div class="stat-grid" style="margin-top:18px">
-  <div class="stat"><div class="k">M² no período</div><div class="v" id="sM2">0<span class="u"> m²</span></div></div>
-  <div class="stat"><div class="k">Horas totais</div><div class="v" id="sH">0<span class="u"> h</span></div></div>
-  <div class="stat"><div class="k">M²/h só corte</div><div class="v" id="sM2HC">0,00<span class="u"> m²/h</span></div></div>
-  <div class="stat"><div class="k">M²/h ciclo completo</div><div class="v" id="sM2HT">0,00<span class="u"> m²/h</span></div></div>
-  <div class="stat"><div class="k">Serviços</div><div class="v" id="sN">0</div></div>
-  <div class="stat"><div class="k">Busca avulsa hoje</div><div class="v" id="sAvulsa">0<span class="u"> min</span></div></div>
-</div>
 
 <div class="section-h">Serviço aberto</div>
 <div id="runningList"></div>
@@ -749,9 +868,12 @@ function escolherEspessura(cm){
   if (espAtual === cm) return;              // já está nesta espessura
   if (espAtual !== null && espIni){         // fecha o período da anterior
     r.lotes = r.lotes || [];
-    r.lotes.push({ cm: espAtual, ms: Date.now() - new Date(espIni).getTime() });
+    const vv = velAtual || velDoLote(espAtual);
+    r.lotes.push({ cm: espAtual, ms: Date.now() - new Date(espIni).getTime(), vel: vv });
+    if (vv > 0) registrarVelocidade(r.mat, espAtual, vv);
   }
   espAtual = cm; espIni = new Date().toISOString();
+  velAtual = velDoLote(cm) || velSugerida(r.mat, cm) || 0;
   if (etapa !== 'corte'){                   // selecionou espessura: assume o corte
     if (pausaIni) pararPausa(r);
     fecharEtapaAtual(r);
@@ -833,6 +955,156 @@ function espessuraDe(r){
   return +Object.keys(cont).sort((a,b)=> cont[b]-cont[a])[0];
 }
 function salvarVels(){ localStorage.setItem('corte_vels', JSON.stringify(velocidades)); }
+/* ---------- turnos: manhã e tarde ----------
+   O turno é o relógio de fora; o serviço é o de dentro. A pausa comum
+   congela o cronômetro do serviço, então almoço e café não entram nele. */
+const TURNOS = {
+  manha: { id:'manha', nome:'Manhã', iniMin: 7*60+30, fimMin: 11*60+30 },
+  tarde: { id:'tarde', nome:'Tarde', iniMin: 13*60,   fimMin: 18*60 }
+};
+let turnos = [];
+try { turnos = JSON.parse(localStorage.getItem('corte_turnos')) || []; } catch(e){ turnos = []; }
+let turnoAberto = null;
+try { turnoAberto = JSON.parse(localStorage.getItem('corte_turno')) || null; } catch(e){ turnoAberto = null; }
+
+function salvarTurnos(){ try{ localStorage.setItem('corte_turnos', JSON.stringify(turnos)); }catch(e){} }
+function salvarTurno(){ try{ localStorage.setItem('corte_turno', JSON.stringify(turnoAberto)); }catch(e){} }
+
+function fmtMin(m){ return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0'); }
+function minutosAgora(){ const d = new Date(); return d.getHours()*60 + d.getMinutes(); }
+function turnoSugerido(){
+  const m = minutosAgora();
+  if (m >= 5*60 && m < 12*60) return 'manha';
+  if (m >= 12*60 && m < 23*60) return 'tarde';
+  return null;
+}
+function msTurnoAberto(){
+  return turnoAberto ? Date.now() - new Date(turnoAberto.ini).getTime() : 0;
+}
+function abrirTurno(id){
+  if (turnoAberto) return;
+  turnoAberto = { id: id, ini: new Date().toISOString() };
+  salvarTurno(); render();
+}
+function fecharTurno(fimForcado){
+  if (!turnoAberto) return;
+  const reg = {
+    turno: turnoAberto.id,
+    nome: TURNOS[turnoAberto.id].nome,
+    ini: turnoAberto.ini,
+    fim: fimForcado || new Date().toISOString()
+  };
+  reg.ms = new Date(reg.fim).getTime() - new Date(reg.ini).getTime();
+  turnos.push(reg);
+  salvarTurnos();
+  turnoAberto = null; salvarTurno(); render();
+}
+/* fecha sozinho se passou do fim previsto do turno */
+function conferirTurnoEsquecido(){
+  if (!turnoAberto) return;
+  const t = TURNOS[turnoAberto.id]; if (!t) return;
+  const d = new Date(turnoAberto.ini);
+  const fim = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(t.fimMin/60), t.fimMin%60, 0);
+  if (Date.now() > fim.getTime() + 30*60000) fecharTurno(fim.toISOString());
+}
+
+/* ---------- meta semanal de horas de serra ----------
+   Mede o que não depende do serviço que chegou: se a serra está rodando,
+   está saindo produção. */
+let META_H_SEMANA = 20;
+try { const h = parseFloat(localStorage.getItem('corte_meta_h')); if (h > 0) META_H_SEMANA = h; } catch(e){}
+function salvarMetaH(){ try{ localStorage.setItem('corte_meta_h', String(META_H_SEMANA)); }catch(e){} }
+function inicioSemana(d){
+  const x = new Date(d);
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate() - ((x.getDay()+6)%7));
+}
+function semanaDe(iso){ return inicioSemana(new Date(iso)); }
+
+/* ---------- velocidade de avanço: por pedra E espessura ----------
+   A chapa grossa pede avanço menor. Cada combinação aprende sozinha a
+   velocidade mais usada, e o campo já vem preenchido. */
+let VELS = {};
+try { VELS = JSON.parse(localStorage.getItem('corte_vels_mat')) || {}; } catch(e){ VELS = {}; }
+let velAtual = 0;
+
+function chaveMat(nome){
+  return String(nome || '').split(' \u00b7 ')[0].trim() || 'sem material';
+}
+function chaveVel(mat, cm){ return chaveMat(mat) + ' | ' + (cm || 0) + 'cm'; }
+function salvarVelsMat(){ try{ localStorage.setItem('corte_vels_mat', JSON.stringify(VELS)); }catch(e){} }
+function registrarVelocidade(mat, cm, vel){
+  if (!(vel > 0)) return;
+  const k = chaveVel(mat, cm);
+  VELS[k] = VELS[k] || {};
+  const v = String(Math.round(vel));
+  VELS[k][v] = (VELS[k][v] || 0) + 1;
+  salvarVelsMat();
+}
+function velSugerida(mat, cm){
+  const cont = VELS[chaveVel(mat, cm)];
+  if (!cont) return 0;
+  let melhor = 0, n = -1;
+  Object.keys(cont).forEach(v => { if (cont[v] > n){ n = cont[v]; melhor = parseFloat(v); } });
+  return melhor;
+}
+function velSugeridaMat(mat){
+  const base = chaveMat(mat) + ' | ';
+  let melhor = 0, n = -1;
+  Object.keys(VELS).forEach(k => {
+    if (k.indexOf(base) !== 0) return;
+    Object.keys(VELS[k]).forEach(v => { if (VELS[k][v] > n){ n = VELS[k][v]; melhor = parseFloat(v); } });
+  });
+  return melhor;
+}
+function velOutras(mat, cm, atual){
+  const cont = VELS[chaveVel(mat, cm)];
+  if (!cont) return [];
+  return Object.keys(cont).map(Number).filter(v => v !== Number(atual))
+    .sort((a,b)=> cont[String(b)] - cont[String(a)]).slice(0, 4);
+}
+function velDoLote(cm){
+  const r = aberto(); if (!r) return 0;
+  if (velAtual > 0 && espAtual === cm) return velAtual;
+  const l = ((r.lotes) || []).filter(x => x.cm === cm && x.vel > 0);
+  return l.length ? l[l.length-1].vel : 0;
+}
+function definirVelocidade(cm, v){
+  const r = aberto(); if (!r) return;
+  velAtual = v;
+  if (v > 0) registrarVelocidade(r.mat, cm, v);
+  salvar(); render();
+}
+/* campo de velocidade do lote em foco */
+function velBloco(r){
+  const sug = velSugerida(r.mat, espAtual);
+  const naEsp = sug > 0;
+  const sugMat = naEsp ? 0 : velSugeridaMat(r.mat);
+  const atual = velAtual || velDoLote(espAtual) || sug;
+  const outras = velOutras(r.mat, espAtual, atual);
+  const nome = chaveMat(r.mat);
+  return '<div class="vel">' +
+    '<label for="velLote">Velocidade de avanço \u2014 ' + esc(nome) + ' ' + espAtual + ' cm</label>' +
+    '<div class="vel-i">' +
+      '<input id="velLote" type="number" inputmode="decimal" step="10" min="0" value="' +
+        (atual > 0 ? nBR(atual,0) : '') + '" placeholder="m/min">' +
+      '<span class="vel-u">m/min</span>' +
+    '</div>' +
+    (naEsp
+      ? '<div class="vel-h">Mais usada em ' + esc(nome) + ' ' + espAtual + ' cm: <b>' + nBR(sug,0) + '</b> m/min</div>'
+      : (sugMat > 0
+          ? '<div class="vel-h">Sem registro em ' + espAtual + ' cm. Neste material você usa <b>' +
+            nBR(sugMat,0) + '</b> m/min em outras espessuras \u2014 confira antes de cortar.</div>'
+          : '<div class="vel-h">Primeira vez com ' + esc(nome) + ' em ' + espAtual +
+            ' cm. Digite a velocidade: o app memoriza.</div>')) +
+    (outras.length
+      ? '<div class="vchips">' + outras.map(v =>
+          '<button type="button" class="vchip" data-vel-lote="' + v + '">' + nBR(v,0) + '</button>').join('') + '</div>'
+      : '') +
+  '</div>';
+}
+
+
+
 function aberto(){ return registros.find(r => !r.fim); }
 
 /* ---------- formatacao ---------- */
@@ -868,6 +1140,16 @@ function esc(s){
 
 /* ---------- tempos ---------- */
 function acumulado(r, campo){ return ((r && r[campo]) || []).reduce((s,p)=> s + (p.ms || 0), 0); }
+
+/* duração do serviço = do início ao fim, MENOS o tempo em pausa.
+   Almoço e café não entram na duração do serviço. */
+function duracaoServico(r){
+  if (!r || !r.inicio) return 0;
+  const fim = r.fim ? new Date(r.fim).getTime() : Date.now();
+  let ms = fim - new Date(r.inicio).getTime() - acumulado(r, 'pausa');
+  if (!r.fim && pausaIni) ms -= (Date.now() - new Date(pausaIni).getTime());
+  return Math.max(0, ms);
+}
 function msEtapa(r, id){
   const base = acumulado(r, id);
   if (!r || r.fim) return base;
@@ -907,6 +1189,7 @@ function pararPausa(r){ fechar('pausa', r, pausaIni); pausaIni = null; }
 
 /* ---------- acoes ---------- */
 function iniciarServico(){
+  if (!turnoAberto && !confirm('Nenhum turno aberto. Iniciar o serviço mesmo assim?')) return;
   const m2 = (CATEGORIA === 'funeraria') ? 0 : num($('m2').value);
   if (!$('proj').value.trim() && m2 <= 0 && totalPecas(PECAS_TMP) <= 0){
     alert('Preencha o nº do projeto, o m² ou as peças por espessura.');
@@ -931,10 +1214,11 @@ function iniciarServico(){
     origem: '',
     chapasMarcadas: [],
     inicio: new Date().toISOString(), fim: null,
+    turno: turnoAberto ? turnoAberto.id : null,
     corte: [], chapa: [], serra: [], mesa: [], avulsa: [], pausa: []
   });
   PECAS_TMP = pecasVazias();
-  espAtual = null; espIni = null;
+  espAtual = null; espIni = null; velAtual = 0;
   renderPecasForm();
   salvar(); render();
 }
@@ -984,6 +1268,36 @@ function finalizar(){
 function render(){
   const r = aberto();
   const tem = !!r;
+
+  /* ---------- os tres estagios da tela ---------- */
+  conferirTurnoEsquecido();
+  const temTurno = !!turnoAberto;
+  if ($('estagioA')) $('estagioA').style.display = (temTurno ? 'none' : 'block');
+  if ($('estagioB')) $('estagioB').style.display = (temTurno && !tem ? 'block' : 'none');
+  if ($('estagioC')) $('estagioC').style.display = (tem ? 'block' : 'none');
+  if ($('iniRelogio') && !temTurno){
+    const n = new Date();
+    $('iniRelogio').textContent = String(n.getHours()).padStart(2,'0') + ':' +
+                                  String(n.getMinutes()).padStart(2,'0');
+    $('iniDia').textContent = n.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'});
+  }
+  if ($('turnoBox')){
+    if (temTurno){
+      const t = TURNOS[turnoAberto.id];
+      $('turnoNome').textContent = t.nome;
+      $('turnoTempo').textContent = fmtDur(msTurnoAberto()).slice(0,5);
+      const ini = new Date(turnoAberto.ini);
+      $('turnoSub').textContent = 'desde ' + String(ini.getHours()).padStart(2,'0') + ':' +
+        String(ini.getMinutes()).padStart(2,'0') + ' · até ' + fmtMin(t.fimMin);
+    } else {
+      const sug = turnoSugerido();
+      $('btnManha').classList.toggle('on', sug === 'manha');
+      $('btnTarde').classList.toggle('on', sug === 'tarde');
+      if ($('turnoDica')) $('turnoDica').textContent = sug
+        ? 'Pela hora atual, o turno é o da ' + TURNOS[sug].nome.toLowerCase() + '.'
+        : 'Fora do horário dos turnos. Escolha o que você vai abrir.';
+    }
+  }
 
   /* ---------- grupos de etapas ---------- */
   const GRUPOS = {
@@ -1037,6 +1351,7 @@ function render(){
               '</div>';
             }).join('') +
           '</div>' +
+          (espAtual ? velBloco(r) : '') +
           (espAtual
             ? '<div class="esp-r">Cortando <b>' + espAtual + ' cm</b> · ' +
                 (loteDe(r, espAtual).n) + ' peça(s) · ' +
@@ -1089,6 +1404,14 @@ function render(){
       escolherEspessura(Number(b.getAttribute('data-esp')));
     };
   });
+  const vIn = $('velLote');
+  if (vIn){
+    vIn.onclick = ev => ev.stopPropagation();
+    vIn.onchange = ev => { ev.stopPropagation(); definirVelocidade(espAtual, num(vIn.value)); };
+  }
+  document.querySelectorAll('[data-vel-lote]').forEach(b => {
+    b.onclick = ev => { ev.stopPropagation(); definirVelocidade(espAtual, Number(b.getAttribute('data-vel-lote'))); };
+  });
   document.querySelectorAll('[data-pc]').forEach(b => {
     b.onclick = ev => {
       ev.stopPropagation();
@@ -1107,7 +1430,7 @@ function render(){
     $('instrucao').textContent = etapa
       ? 'Etapa no momento: ' + (ETAPAS.find(e=>e.id===etapa)||{}).nome + '. Selecione a próxima etapa.'
       : 'Serviço aberto, sem etapa em andamento. Selecione a etapa atual.';
-    $('clock').textContent = fmtDur(Date.now()-new Date(r.inicio).getTime());
+    $('clock').textContent = fmtDur(duracaoServico(r));
     $('clock').style.color = pausaIni ? 'var(--lar)' : 'var(--txt)';
     $('dot').style.background = pausaIni ? 'var(--lar)' : (etapa ? 'var(--verde)' : 'var(--sub)');
     $('statusTxt').textContent = pausaIni ? 'Em pausa' : (etapa ? 'Serviço em andamento' : 'Serviço aberto — sem etapa');
@@ -1168,7 +1491,7 @@ function render(){
         '<div>' + ETAPAS.map(e =>
           '<span class="tag">' + e.ic + ' ' + fmtCurto(msEtapa(r, e.id)) + '</span>').join('') + '</div>' +
       '</div><div class="r">' +
-        '<div class="h">' + fmtCurto(Date.now()-new Date(r.inicio).getTime()) + '</div>' +
+        '<div class="h">' + fmtCurto(duracaoServico(r)) + '</div>' +
         '<div class="m">' + (r.m2 ? nBR(r.m2,2) + ' m²' : 'sem m²') + '</div>' +
       '</div></div>';
   } else {
@@ -1699,14 +2022,89 @@ function renderDashboard(){
   }
 
     /* ---- metas ---- */
-  h += '<div class="sec"><div class="sec-t">Meta</div><div class="panel tight">' +
+  /* ---- meta do setor: horas de serra por semana ---- */
+  const semanas = {};
+  L.forEach(x => {
+    const k = semanaDe(x.inicio).toISOString().slice(0,10);
+    semanas[k] = semanas[k] || { seg:new Date(k), ms:0, ciclo:0, dias:{} };
+    semanas[k].ms += acumulado(x,'corte');
+    semanas[k].ciclo += acumulado(x,'corte') + acumulado(x,'chapa') + acumulado(x,'serra') + acumulado(x,'mesa');
+    const dk = new Date(x.inicio).toDateString();
+    semanas[k].dias[dk] = (semanas[k].dias[dk] || 0) + acumulado(x,'corte');
+  });
+  const sk = Object.keys(semanas).sort();
+  const metaMs = META_H_SEMANA * 3600000;
+
+  if (sk.length){
+    const maxS = Math.max.apply(null, sk.map(k => semanas[k].ms)) || 1;
+    const topo = Math.max(maxS, metaMs);
+    let extraMs = 0;
+    sk.forEach(k => { extraMs += Math.max(0, semanas[k].ms - metaMs); });
+    const ultima = semanas[sk[sk.length-1]];
+
+    h += '<div class="sec"><div class="sec-t">Meta do setor \u2014 horas de serra</div>' +
+      '<div class="panel tight">' +
+        '<div class="meta-atual">' +
+          '<div class="k">Última semana registrada</div>' +
+          '<div class="v">' + nBR(ultima.ms/3600000,1) + '<small> h</small></div>' +
+          '<div class="sub">de ' + nBR(META_H_SEMANA,0) + ' h na meta' +
+            (ultima.ms >= metaMs
+              ? ' \u2014 <b style="color:var(--verde)">batida em ' + nBR((ultima.ms-metaMs)/3600000,1) + ' h</b>'
+              : ' \u2014 faltam ' + nBR((metaMs-ultima.ms)/3600000,1) + ' h') +
+          '</div>' +
+        '</div>' +
+        '<div class="meta-bars">' + sk.map(k => {
+          const sw = semanas[k];
+          return '<div class="mb-col">' +
+            '<div class="mb-v">' + nBR(sw.ms/3600000,1) + '</div>' +
+            '<div class="mb-bar"><i style="height:' + Math.max(2, sw.ms/topo*100) +
+              '%;background:' + (sw.ms >= metaMs ? 'var(--verde)' : 'var(--azul)') + '"></i>' +
+              '<span class="mb-meta" style="bottom:' + (metaMs/topo*100) + '%"></span>' +
+            '</div><div class="mb-l">' + dCurta(sw.seg) + '</div></div>';
+        }).join('') + '</div>' +
+        (extraMs > 0
+          ? '<div class="meta-extra"><b>' + nBR(extraMs/3600000,1) + ' h além da meta</b> no período (' +
+            sk.filter(k => semanas[k].ms >= metaMs).length + ' de ' + sk.length + ' semanas)</div>'
+          : '') +
+      '</div></div>';
+
+    /* dia a dia da última semana */
+    const dias = Object.keys(ultima.dias).sort((a,b)=> new Date(a) - new Date(b));
+    if (dias.length){
+      const serraH = ultima.ms/3600000, cicloH = ultima.ciclo/3600000;
+      h += '<div class="sec"><div class="sec-t">Dia a dia</div><div class="panel tight">' +
+        '<div class="dia-list">' + dias.map(d => {
+          const ms = ultima.dias[d], dt = new Date(d);
+          const nome = ['dom','seg','ter','qua','qui','sex','sáb'][dt.getDay()];
+          return '<div class="dia-r">' +
+            '<span class="dia-d">' + nome + ' ' + dCurta(dt) + '</span>' +
+            '<span class="dia-b"><i style="width:' + Math.min(100, ms/(metaMs/5)*100) + '%"></i></span>' +
+            '<span class="dia-v">' + nBR(ms/3600000,1) + ' h</span></div>';
+        }).join('') + '</div>' +
+        '<div style="font-size:11px;color:var(--sub);margin-top:11px;line-height:1.55">' +
+          'Na semana, <b style="color:var(--txt2)">' + nBR(serraH,1) + ' h de serra em ' +
+          nBR(cicloH,1) + ' h de turno</b> \u2014 a serra rodou ' + nBR(cicloH>0?serraH/cicloH*100:0,0) +
+          '% do tempo.' +
+        '</div></div></div>';
+    }
+  }
+
+  /* ---- ajuste das metas ---- */
+  h += '<div class="sec"><div class="sec-t">Ajustar metas</div><div class="panel tight">' +
+    '<label for="metaHIn">Horas de serra por semana</label>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+      '<input id="metaHIn" type="number" inputmode="decimal" step="1" min="1" value="' +
+        nBR(META_H_SEMANA,0) + '" style="flex:1">' +
+      '<button type="button" class="btn-mid" id="metaHSalvar" style="width:auto;padding:12px 18px">Salvar</button>' +
+    '</div>' +
+    '<label for="metaIn" style="margin-top:14px">Meta de m²/h (só construção civil)</label>' +
     '<div style="display:flex;gap:8px;align-items:center">' +
       '<input id="metaIn" type="number" inputmode="decimal" step="0.05" min="0.1" value="' +
         nBR(META_M2H,2).replace(',','.') + '" style="flex:1">' +
       '<button type="button" class="btn-mid" id="metaSalvar" style="width:auto;padding:12px 18px">Salvar</button>' +
     '</div>' +
-    '<div style="font-size:11px;color:var(--sub);margin-top:8px">Meta de m² por hora de corte. ' +
-      'O anel, a barra verde e o comparativo acima seguem este valor.</div>' +
+    '<div style="font-size:11px;color:var(--sub);margin-top:9px">A meta de horas de serra é a principal: ' +
+      'não depende do serviço que chegou.</div>' +
   '</div></div>';
 
   h += '</div>';
@@ -1714,6 +2112,10 @@ function renderDashboard(){
 
   filtrarMateriais(listaM, itFam, 'Todos');
 
+  $('metaHSalvar').onclick = () => {
+    const v = num($('metaHIn').value);
+    if (v > 0){ META_H_SEMANA = v; salvarMetaH(); renderDashboard(); }
+  };
   $('metaSalvar').onclick = () => {
     const v = num($('metaIn').value);
     if (v > 0){ META_M2H = v; try{ localStorage.setItem('corte_meta_m2h', String(v)); }catch(e){} renderDashboard(); }
@@ -2258,6 +2660,9 @@ function renderVels(){
 }
 
 /* ---------- botoes ---------- */
+$('btnManha').onclick = () => abrirTurno('manha');
+$('btnTarde').onclick = () => abrirTurno('tarde');
+$('btnFecharTurno').onclick = () => fecharTurno();
 $('btn').onclick = () => { aberto() ? finalizar() : iniciarServico(); };
 $('btnBump').onclick = () => {
   if (!aberto()) return;
@@ -2536,9 +2941,10 @@ $('btnClear').onclick = () => {
 
 /* ---------- relogio: atualiza os cartoes ativos a cada segundo ---------- */
 setInterval(() => {
+  if (turnoAberto && $('turnoTempo')) $('turnoTempo').textContent = fmtDur(msTurnoAberto()).slice(0,5);
   const r = aberto();
   if (!r) return;
-  $('clock').textContent = fmtDur(Date.now()-new Date(r.inicio).getTime());
+  $('clock').textContent = fmtDur(duracaoServico(r));
   ETAPAS.forEach(e => {
     const el = document.querySelector('[data-etapa="' + e.id + '"]');
     if (!el) return;
@@ -2713,6 +3119,7 @@ self.addEventListener('fetch', e => {
   preencherFamilias();
   preencherMateriais();
   renderPecasForm();
+  conferirTurnoEsquecido();
   render();
   instalarServiceWorker();
 })();
