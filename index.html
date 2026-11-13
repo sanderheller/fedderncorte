@@ -2180,7 +2180,7 @@ document.querySelectorAll('[data-cat]').forEach(b => {
     $('m2Wrap').style.display = sepult ? 'none' : 'block';
     $('m2Nota').style.display = sepult ? 'block' : 'none';
     if (sepult) $('m2').value = '';
-    desenharPecasEsp($('pecasEsp'), PECAS_TMP, () => renderPecasForm(), false);
+    renderPecasForm();
   };
 });
 $('mat').onchange = preencherAcabamentos;
