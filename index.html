@@ -395,6 +395,12 @@
   .ex .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--sub);}
   .ex .foot b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt2);}
 
+  /* ---------- aviso de serviço esquecido ---------- */
+  .aviso-serv{background:rgba(245,161,92,.09);border:1px solid rgba(245,161,92,.45);
+    border-radius:var(--rl);padding:17px 18px;margin-bottom:12px;}
+  .aviso-serv .as-t{font-size:15.5px;font-weight:700;letter-spacing:-.25px;color:var(--lar);}
+  .aviso-serv .as-d{font-size:12.5px;color:var(--txt2);line-height:1.55;margin-top:7px;}
+
   /* ---------- meta do setor ---------- */
   .meta-atual{margin-bottom:16px;}
   .meta-atual .k{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1.1px;font-weight:800;}
@@ -1004,6 +1010,22 @@ function fecharTurno(fimForcado){
   turnoAberto = null; salvarTurno(); render();
 }
 /* fecha sozinho se passou do fim previsto do turno */
+/* serviço que ficou aberto e ninguém marcou etapa: fecha sozinho depois de
+   16 h, para não travar a tela do dia seguinte. */
+function conferirServicoEsquecido(){
+  const r = aberto();
+  if (!r) return;
+  const horas = (Date.now() - new Date(r.inicio).getTime()) / 3600000;
+  const semEtapa = !acumulado(r,'corte') && !acumulado(r,'chapa') && !acumulado(r,'serra') &&
+                   !acumulado(r,'mesa') && !acumulado(r,'pausa');
+  if (horas >= 16){
+    r.fim = new Date(new Date(r.inicio).getTime() + 60000).toISOString();
+    r.autoFechado = true;
+    etapa = null; etapaIni = null; pausaIni = null; avulsaIni = null;
+    salvar();
+  }
+}
+
 function conferirTurnoEsquecido(){
   if (!turnoAberto) return;
   const t = TURNOS[turnoAberto.id]; if (!t) return;
@@ -1274,6 +1296,7 @@ function render(){
   const tem = !!r;
 
   /* ---------- os tres estagios da tela ---------- */
+  conferirServicoEsquecido();
   conferirTurnoEsquecido();
   const temTurno = !!turnoAberto;
   if ($('estagioA')) $('estagioA').style.display = (temTurno ? 'none' : 'block');
@@ -1486,7 +1509,21 @@ function render(){
 
   /* servico aberto */
   if (tem){
-    $('runningList').innerHTML =
+    /* se o serviço está aberto e sem etapa marcada, avisa em destaque */
+    const semEtapa = !acumulado(r,'corte') && !acumulado(r,'chapa') && !acumulado(r,'serra') &&
+                     !acumulado(r,'mesa') && !acumulado(r,'pausa');
+    const horasAberto = (Date.now() - new Date(r.inicio).getTime()) / 3600000;
+    const aviso = (semEtapa && horasAberto > 2)
+      ? '<div class="aviso-serv">' +
+          '<div class="as-t">Serviço aberto sem etapa marcada</div>' +
+          '<div class="as-d">Aberto ' + fmtCurto(Date.now() - new Date(r.inicio).getTime()) +
+            ' atrás' + (horasAberto >= 16 ? ' e será fechado automaticamente.' : '.') +
+            ' Se você já terminou, toque em Finalizar serviço.</div>' +
+          '<button type="button" class="btn-stop" id="btnFinalizarAgora" ' +
+            'style="margin-top:11px;font-size:15px;padding:15px">Finalizar este serviço</button>' +
+        '</div>'
+      : '';
+    $('runningList').innerHTML = aviso +
       '<div class="item"><div class="l">' +
         '<div class="n">' + esc(r.proj) + ' — ' + esc(r.tipo) + '</div>' +
         '<div class="m">Início ' + fmtData(r.inicio) + ' · ' + esc(r.mat) +
@@ -1549,6 +1586,8 @@ function render(){
   setTxt('sN', String(feitos.length));
   setTxt('sAvulsa', Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>');
 
+  const bf = $('btnFinalizarAgora');
+  if (bf) bf.onclick = () => finalizar();
   document.querySelectorAll('[data-abrir]').forEach(b => {
     b.onclick = () => abrirDetalhe(b.getAttribute('data-abrir'));
   });
