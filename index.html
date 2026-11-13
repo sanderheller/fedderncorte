@@ -1533,16 +1533,17 @@ function render(){
     }).join('');
   }
 
-  /* indicadores */
+  /* indicadores do período — ficam na aba Dashboard; aqui só se existirem */
   const tM2 = feitos.reduce((s,x)=> s + num(x.m2), 0);
   const tCorte = feitos.reduce((s,x)=> s + acumulado(x,'corte'), 0);
-  const tCiclo = feitos.reduce((s,x)=> s + acumulado(x,'corte') + acumulado(x,'chapa') + acumulado(x,'mesa'), 0);
-  $('sM2').innerHTML  = nBR(tM2,1) + '<span class="u"> m²</span>';
-  $('sH').innerHTML   = nBR(tCiclo/3600000,1) + '<span class="u"> h</span>';
-  $('sM2HC').innerHTML = (tCorte>0 ? nBR(tM2/(tCorte/3600000),2) : '0,00') + '<span class="u"> m²/h</span>';
-  $('sM2HT').innerHTML = (tCiclo>0 ? nBR(tM2/(tCiclo/3600000),2) : '0,00') + '<span class="u"> m²/h</span>';
-  $('sN').textContent = feitos.length;
-  $('sAvulsa').innerHTML = Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>';
+  const tCiclo = feitos.reduce((s,x)=> s + acumulado(x,'corte') + acumulado(x,'chapa') + acumulado(x,'serra') + acumulado(x,'mesa'), 0);
+  const setTxt = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
+  setTxt('sM2', nBR(tM2,1) + '<span class="u"> m²</span>');
+  setTxt('sH', nBR(tCiclo/3600000,1) + '<span class="u"> h</span>');
+  setTxt('sM2HC', (tCorte>0 ? nBR(tM2/(tCorte/3600000),2) : '0,00') + '<span class="u"> m²/h</span>');
+  setTxt('sM2HT', (tCiclo>0 ? nBR(tM2/(tCiclo/3600000),2) : '0,00') + '<span class="u"> m²/h</span>');
+  setTxt('sN', String(feitos.length));
+  setTxt('sAvulsa', Math.round(totalAvulsaHoje()/60000) + '<span class="u"> min</span>');
 
   document.querySelectorAll('[data-abrir]').forEach(b => {
     b.onclick = () => abrirDetalhe(b.getAttribute('data-abrir'));
